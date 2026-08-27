@@ -26,24 +26,33 @@ const DiscoveryEngine = {
 
     const data = new FormData(form);
 
-    this.state.industry =
-      String(data.get("industry") || "").trim();
+    this.state.industry = String(
+      data.get("industry") || ""
+    ).trim();
 
-    this.state.location =
-      String(data.get("location") || "").trim();
+    this.state.location = String(
+      data.get("location") || ""
+    ).trim();
 
     this.state.limit = Math.min(
-      Math.max(Number(data.get("limit") || 25), 1),
+      Math.max(
+        Number(data.get("limit") || 25),
+        1
+      ),
       100
     );
 
-    this.state.requirements = Array.from(
-      document.querySelectorAll(
-        'input[name="requirements"]:checked'
-      )
-    ).map((input) => input.value);
+    this.state.requirements =
+      Array.from(
+        document.querySelectorAll(
+          'input[name="requirements"]:checked'
+        )
+      ).map((input) => input.value);
 
-    if (!this.state.industry || !this.state.location) {
+    if (
+      !this.state.industry ||
+      !this.state.location
+    ) {
       this.updateStatus(
         "Please enter an industry and location."
       );
@@ -53,10 +62,26 @@ const DiscoveryEngine = {
     this.state.running = true;
     this.state.results = [];
 
-    this.updateStatus("Searching...");
+    this.updateStatus("Finding location...");
 
     try {
-      const results = await this.searchOpenStreetMap();
+      const areaId =
+        await this.findLocation();
+
+      if (!areaId) {
+        throw new Error(
+          "Location not found."
+        );
+      }
+
+      this.updateStatus(
+        "Searching businesses..."
+      );
+
+      const results =
+        await this.searchBusinesses(
+          areaId
+        );
 
       this.state.results = results;
 
@@ -67,65 +92,123 @@ const DiscoveryEngine = {
       );
 
     } catch (error) {
-      console.error("Discovery error:", error);
 
-      this.updateStatus(
-        "Search failed. Please try again."
+      console.error(
+        "Discovery error:",
+        error
       );
 
-      this.renderError();
+      this.updateStatus(
+        "Search failed."
+      );
+
+      this.renderError(
+        error.message
+      );
 
     } finally {
       this.state.running = false;
     }
   },
 
-  async searchOpenStreetMap() {
+  async findLocation() {
+
+    const query =
+      encodeURIComponent(
+        this.state.location
+      );
+
+    const url =
+      `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${query}`;
+
+    const response =
+      await fetch(url, {
+        headers: {
+          "Accept":
+            "application/json"
+        }
+      });
+
+    if (!response.ok) {
+      throw new Error(
+        `Location service error: ${response.status}`
+      );
+    }
+
+    const data =
+      await response.json();
+
+    if (
+      !Array.isArray(data) ||
+      data.length === 0
+    ) {
+      return null;
+    }
+
+    return {
+      lat: Number(data[0].lat),
+      lon: Number(data[0].lon)
+    };
+  },
+
+  async searchBusinesses(location) {
+
+    const lat =
+      location.lat;
+
+    const lon =
+      location.lon;
+
+    const radius = 10000;
 
     const query = `
-[out:json][timeout:25];
-
-area["name"="${this.state.location}"]["boundary"="administrative"]->.searchArea;
+[out:json][timeout:30];
 
 (
-  nwr["amenity"="restaurant"](area.searchArea);
-  nwr["amenity"="cafe"](area.searchArea);
-  nwr["amenity"="fast_food"](area.searchArea);
+  nwr["amenity"="restaurant"](around:${radius},${lat},${lon});
+  nwr["amenity"="cafe"](around:${radius},${lat},${lon});
+  nwr["amenity"="fast_food"](around:${radius},${lat},${lon});
 );
 
 out center tags;
 `;
 
-    const response = await fetch(
-      "https://overpass-api.de/api/interpreter",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type":
-            "application/x-www-form-urlencoded"
-        },
-        body:
-          "data=" +
-          encodeURIComponent(query)
-      }
-    );
+    const response =
+      await fetch(
+        "https://overpass-api.de/api/interpreter",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/x-www-form-urlencoded"
+          },
+
+          body:
+            "data=" +
+            encodeURIComponent(query)
+        }
+      );
 
     if (!response.ok) {
       throw new Error(
-        `Overpass API error: ${response.status}`
+        `Search service error: ${response.status}`
       );
     }
 
-    const data = await response.json();
+    const data =
+      await response.json();
 
-    const elements = Array.isArray(data.elements)
-      ? data.elements
-      : [];
+    const elements =
+      Array.isArray(data.elements)
+        ? data.elements
+        : [];
 
     return elements
       .map((element) => {
 
-        const tags = element.tags || {};
+        const tags =
+          element.tags || {};
 
         const lat =
           element.lat ??
@@ -138,7 +221,9 @@ out center tags;
           null;
 
         return {
-          id: `${element.type}-${element.id}`,
+
+          id:
+            `${element.type}-${element.id}`,
 
           name:
             tags.name ||
@@ -149,13 +234,7 @@ out center tags;
             "business",
 
           address:
-            tags["addr:street"]
-              ? `${tags["addr:street"]}${
-                  tags["addr:housenumber"]
-                    ? " " + tags["addr:housenumber"]
-                    : ""
-                }`
-              : "",
+            this.buildAddress(tags),
 
           phone:
             tags.phone ||
@@ -171,18 +250,54 @@ out center tags;
             tags["contact:instagram"] ||
             "",
 
-          latitude: lat,
+          latitude:
+            lat,
 
-          longitude: lon,
+          longitude:
+            lon,
 
-          mapsUrl:
+          mapUrl:
             lat && lon
               ? `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=18/${lat}/${lon}`
               : ""
         };
       })
-      .filter((business) => business.name)
-      .slice(0, this.state.limit);
+
+      .filter(
+        (business) =>
+          business.name !==
+          "Unnamed business"
+      )
+
+      .slice(
+        0,
+        this.state.limit
+      );
+  },
+
+  buildAddress(tags) {
+
+    const parts = [];
+
+    if (tags["addr:housenumber"]) {
+      parts.push(
+        tags["addr:housenumber"]
+      );
+    }
+
+    if (tags["addr:street"]) {
+      parts.push(
+        tags["addr:street"]
+      );
+    }
+
+    if (tags["addr:city"]) {
+      parts.push(
+        tags["addr:city"]
+      );
+    }
+
+    return parts.join(", ");
   },
 
   renderResults(results) {
@@ -198,15 +313,19 @@ out center tags;
 
       container.innerHTML = `
         <div class="empty-state">
-          <div class="empty-icon">🔎</div>
+
+          <div class="empty-icon">
+            🔎
+          </div>
 
           <strong>
             No businesses found
           </strong>
 
           <p>
-            Try another city or industry.
+            Try another location or search again.
           </p>
+
         </div>
       `;
 
@@ -214,9 +333,15 @@ out center tags;
     }
 
     container.innerHTML = `
-      <div style="display:grid; gap:12px;">
+      <div
+        style="
+          display:grid;
+          gap:12px;
+        "
+      >
 
-        ${results.map((business) => `
+        ${results.map(
+          (business) => `
 
           <div
             class="card"
@@ -231,7 +356,6 @@ out center tags;
                 display:flex;
                 justify-content:space-between;
                 gap:15px;
-                align-items:flex-start;
               "
             >
 
@@ -244,7 +368,9 @@ out center tags;
                     margin-bottom:6px;
                   "
                 >
-                  ${this.escapeHTML(business.name)}
+                  ${this.escapeHTML(
+                    business.name
+                  )}
                 </strong>
 
                 <div
@@ -277,7 +403,6 @@ out center tags;
 
             </div>
 
-
             <div
               style="
                 display:flex;
@@ -291,33 +416,49 @@ out center tags;
 
               ${
                 business.phone
-                  ? `<span>📞 ${this.escapeHTML(
-                      business.phone
-                    )}</span>`
+                  ? `
+                    <span>
+                      📞 ${this.escapeHTML(
+                        business.phone
+                      )}
+                    </span>
+                  `
                   : ""
               }
 
               ${
                 business.website
-                  ? `<span>🌐 Website</span>`
+                  ? `
+                    <span>
+                      🌐 Website
+                    </span>
+                  `
                   : ""
               }
 
               ${
                 business.instagram
-                  ? `<span>📸 Instagram</span>`
+                  ? `
+                    <span>
+                      📸 Instagram
+                    </span>
+                  `
                   : ""
               }
 
             </div>
 
-
             ${
-              business.mapsUrl
+              business.mapUrl
                 ? `
-                  <div style="margin-top:12px;">
+                  <div
+                    style="
+                      margin-top:12px;
+                    "
+                  >
+
                     <a
-                      href="${business.mapsUrl}"
+                      href="${business.mapUrl}"
                       target="_blank"
                       rel="noopener noreferrer"
                       style="
@@ -325,8 +466,9 @@ out center tags;
                         color:inherit;
                       "
                     >
-                      View on OpenStreetMap →
+                      View location →
                     </a>
+
                   </div>
                 `
                 : ""
@@ -334,13 +476,14 @@ out center tags;
 
           </div>
 
-        `).join("")}
+        `
+        ).join("")}
 
       </div>
     `;
   },
 
-  renderError() {
+  renderError(message) {
 
     const container =
       document.getElementById(
@@ -361,8 +504,10 @@ out center tags;
         </strong>
 
         <p>
-          The data source could not be reached.
-          Try again in a moment.
+          ${this.escapeHTML(
+            message ||
+            "Please try again."
+          )}
         </p>
 
       </div>
@@ -377,7 +522,8 @@ out center tags;
       );
 
     if (status) {
-      status.textContent = message;
+      status.textContent =
+        message;
     }
   },
 
@@ -389,18 +535,6 @@ out center tags;
       .replaceAll(">", "&gt;")
       .replaceAll('"', "&quot;")
       .replaceAll("'", "&#039;");
-  },
-
-  getRequest() {
-
-    return {
-      industry: this.state.industry,
-      location: this.state.location,
-      limit: this.state.limit,
-      requirements: [
-        ...this.state.requirements
-      ]
-    };
   }
 };
 
@@ -413,4 +547,5 @@ document.addEventListener(
 );
 
 
-window.DiscoveryEngine = DiscoveryEngine;
+window.DiscoveryEngine =
+  DiscoveryEngine;
