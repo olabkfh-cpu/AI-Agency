@@ -1,316 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>AI Agency OS</title>
 
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: Inter, Arial, sans-serif;
-      background: #0b0b0d;
-      color: #f5f5f5;
-      min-height: 100vh;
-    }
-
-    .app {
-      display: flex;
-      min-height: 100vh;
-    }
-
-    /* SIDEBAR */
-
-    .sidebar {
-      width: 250px;
-      background: #101012;
-      border-right: 1px solid #252528;
-      padding: 28px 18px;
-      position: fixed;
-      top: 0;
-      bottom: 0;
-      left: 0;
-    }
-
-    .logo {
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      margin-bottom: 40px;
-      padding-left: 12px;
-    }
-
-    .logo span {
-      color: #999;
-      font-weight: 400;
-    }
-
-    .nav-title {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: #666;
-      padding: 0 12px;
-      margin-bottom: 12px;
-    }
-
-    .nav {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-
-    .nav a {
-      text-decoration: none;
-      color: #999;
-      padding: 11px 12px;
-      border-radius: 8px;
-      font-size: 14px;
-      transition: 0.2s;
-    }
-
-    .nav a:hover,
-    .nav a.active {
-      background: #1c1c20;
-      color: #fff;
-    }
-
-    /* MAIN */
-
-    .main {
-      margin-left: 250px;
-      width: calc(100% - 250px);
-      padding: 34px 40px;
-    }
-
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 40px;
-    }
-
-    .welcome h1 {
-      font-size: 28px;
-      letter-spacing: -0.8px;
-      margin-bottom: 6px;
-    }
-
-    .welcome p {
-      color: #777;
-      font-size: 14px;
-    }
-
-    .profile {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .avatar {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      background: #242428;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      font-weight: 600;
-    }
-
-    /* STATS */
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 28px;
-    }
-
-    .card {
-      background: #111113;
-      border: 1px solid #252528;
-      border-radius: 12px;
-      padding: 22px;
-    }
-
-    .stat-label {
-      color: #777;
-      font-size: 13px;
-      margin-bottom: 14px;
-    }
-
-    .stat-number {
-      font-size: 30px;
-      font-weight: 600;
-    }
-
-    /* CONTENT */
-
-    .content-grid {
-      display: grid;
-      grid-template-columns: 1.5fr 1fr;
-      gap: 20px;
-    }
-
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 18px;
-    }
-
-    .section-header h2 {
-      font-size: 16px;
-      font-weight: 600;
-    }
-
-    .section-header a {
-      color: #888;
-      text-decoration: none;
-      font-size: 13px;
-    }
-
-    /* ACTIVITY */
-
-    .activity {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .activity-item {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 14px 0;
-      border-bottom: 1px solid #202023;
-    }
-
-    .activity-item:last-child {
-      border-bottom: none;
-    }
-
-    .activity-icon {
-      width: 34px;
-      height: 34px;
-      border-radius: 8px;
-      background: #1d1d21;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-    }
-
-    .activity-text {
-      flex: 1;
-    }
-
-    .activity-text strong {
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    .activity-text p {
-      font-size: 12px;
-      color: #666;
-      margin-top: 4px;
-    }
-
-    .time {
-      font-size: 11px;
-      color: #555;
-    }
-
-    /* PIPELINE */
-
-    .pipeline {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .pipeline-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px;
-      background: #151517;
-      border: 1px solid #222225;
-      border-radius: 8px;
-    }
-
-    .pipeline-row span:first-child {
-      color: #aaa;
-      font-size: 13px;
-    }
-
-    .pipeline-number {
-      font-weight: 600;
-      font-size: 14px;
-    }
-
-    /* RESPONSIVE */
-
-    @media (max-width: 1000px) {
-      .stats {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .content-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 700px) {
-      .sidebar {
-        width: 70px;
-        padding: 20px 10px;
-      }
-
-      .logo {
-        font-size: 0;
-      }
-
-      .logo::after {
-        content: "AI";
-        font-size: 18px;
-      }
-
-      .nav-title,
-      .nav a {
-        font-size: 0;
-      }
-
-      .nav a {
-        height: 42px;
-      }
-
-      .main {
-        margin-left: 70px;
-        width: calc(100% - 70px);
-        padding: 24px 18px;
-      }
-
-      .stats {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
   <div class="app">
-
-    <!-- SIDEBAR -->
 
     <aside class="sidebar">
 
@@ -323,49 +24,19 @@
       </div>
 
       <nav class="nav">
-
-        <a href="#" class="active">
-          Dashboard
-        </a>
-
-        <a href="#">
-          Leads
-        </a>
-
-        <a href="#">
-          Companies
-        </a>
-
-        <a href="#">
-          Outreach
-        </a>
-
-        <a href="#">
-          Conversations
-        </a>
-
-        <a href="#">
-          Deals
-        </a>
-
-        <a href="#">
-          Payments
-        </a>
-
-        <a href="#">
-          Services
-        </a>
-
-        <a href="#">
-          Settings
-        </a>
-
+        <a href="#" class="active">Dashboard</a>
+        <a href="#">Leads</a>
+        <a href="#">Companies</a>
+        <a href="#">Outreach</a>
+        <a href="#">Conversations</a>
+        <a href="#">Deals</a>
+        <a href="#">Payments</a>
+        <a href="#">Services</a>
+        <a href="#">Settings</a>
       </nav>
 
     </aside>
 
-
-    <!-- MAIN -->
 
     <main class="main">
 
@@ -377,161 +48,86 @@
         </div>
 
         <div class="profile">
-
-          <div class="avatar">
-            AI
-          </div>
-
+          <div class="avatar">AI</div>
         </div>
 
       </div>
 
 
-      <!-- STATS -->
-
       <section class="stats">
 
         <div class="card">
-          <div class="stat-label">
-            Total Leads
-          </div>
-
-          <div class="stat-number">
-            0
-          </div>
+          <div class="stat-label">Total Leads</div>
+          <div class="stat-number">0</div>
         </div>
 
-
         <div class="card">
-          <div class="stat-label">
-            Active Conversations
-          </div>
-
-          <div class="stat-number">
-            0
-          </div>
+          <div class="stat-label">Active Conversations</div>
+          <div class="stat-number">0</div>
         </div>
 
-
         <div class="card">
-          <div class="stat-label">
-            Interested
-          </div>
-
-          <div class="stat-number">
-            0
-          </div>
+          <div class="stat-label">Interested</div>
+          <div class="stat-number">0</div>
         </div>
 
-
         <div class="card">
-          <div class="stat-label">
-            Deals
-          </div>
-
-          <div class="stat-number">
-            0
-          </div>
+          <div class="stat-label">Deals</div>
+          <div class="stat-number">0</div>
         </div>
 
       </section>
 
 
-      <!-- CONTENT -->
-
       <section class="content-grid">
-
-
-        <!-- RECENT ACTIVITY -->
 
         <div class="card">
 
           <div class="section-header">
-
-            <h2>
-              Recent Activity
-            </h2>
-
-            <a href="#">
-              View all
-            </a>
-
+            <h2>Recent Activity</h2>
+            <a href="#">View all</a>
           </div>
-
 
           <div class="activity">
 
             <div class="activity-item">
 
-              <div class="activity-icon">
-                AI
-              </div>
+              <div class="activity-icon">AI</div>
 
               <div class="activity-text">
-
-                <strong>
-                  AI Agency is ready
-                </strong>
-
-                <p>
-                  Your workspace has been initialized.
-                </p>
-
+                <strong>AI Agency is ready</strong>
+                <p>Your workspace has been initialized.</p>
               </div>
 
-              <div class="time">
-                Now
-              </div>
+              <div class="time">Now</div>
 
             </div>
 
 
             <div class="activity-item">
 
-              <div class="activity-icon">
-                +
-              </div>
+              <div class="activity-icon">+</div>
 
               <div class="activity-text">
-
-                <strong>
-                  No leads yet
-                </strong>
-
-                <p>
-                  Leads will appear here once added.
-                </p>
-
+                <strong>No leads yet</strong>
+                <p>Leads will appear here once added.</p>
               </div>
 
-              <div class="time">
-                —
-              </div>
+              <div class="time">—</div>
 
             </div>
 
 
             <div class="activity-item">
 
-              <div class="activity-icon">
-                $
-              </div>
+              <div class="activity-icon">$</div>
 
               <div class="activity-text">
-
-                <strong>
-                  No deals yet
-                </strong>
-
-                <p>
-                  Your future deals will appear here.
-                </p>
-
+                <strong>No deals yet</strong>
+                <p>Your future deals will appear here.</p>
               </div>
 
-              <div class="time">
-                —
-              </div>
+              <div class="time">—</div>
 
             </div>
 
@@ -540,83 +136,37 @@
         </div>
 
 
-        <!-- PIPELINE -->
-
         <div class="card">
 
           <div class="section-header">
-
-            <h2>
-              Sales Pipeline
-            </h2>
-
+            <h2>Sales Pipeline</h2>
           </div>
-
 
           <div class="pipeline">
 
             <div class="pipeline-row">
-
-              <span>
-                New Leads
-              </span>
-
-              <span class="pipeline-number">
-                0
-              </span>
-
+              <span>New Leads</span>
+              <span class="pipeline-number">0</span>
             </div>
 
-
             <div class="pipeline-row">
-
-              <span>
-                Qualified
-              </span>
-
-              <span class="pipeline-number">
-                0
-              </span>
-
+              <span>Qualified</span>
+              <span class="pipeline-number">0</span>
             </div>
 
-
             <div class="pipeline-row">
-
-              <span>
-                Interested
-              </span>
-
-              <span class="pipeline-number">
-                0
-              </span>
-
+              <span>Interested</span>
+              <span class="pipeline-number">0</span>
             </div>
 
-
             <div class="pipeline-row">
-
-              <span>
-                Negotiating
-              </span>
-
-              <span class="pipeline-number">
-                0
-              </span>
-
+              <span>Negotiating</span>
+              <span class="pipeline-number">0</span>
             </div>
 
-
             <div class="pipeline-row">
-
-              <span>
-                Payment Pending
-              </span>
-
-              <span class="pipeline-number">
-                0
-              </span>
-
+              <span>Payment Pending</span>
+              <span class="pipeline-number">0</span>
             </div>
 
           </div>
