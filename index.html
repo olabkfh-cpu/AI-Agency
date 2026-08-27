@@ -2,23 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
-  <title>AI Agency OS</title>
+  <title>AI Agency</title>
 
-  <link rel="stylesheet" href="css/style.css">
+  <link
+    rel="stylesheet"
+    href="css/style.css"
+  >
 </head>
 
 <body>
 
   <div class="app">
 
-    <!-- SIDEBAR -->
+    <!-- =========================
+         SIDEBAR
+    ========================== -->
 
     <aside class="sidebar">
 
       <div class="logo">
-        AI Agency <span>OS</span>
+        AI <span>Agency</span>
       </div>
 
       <div class="nav-title">
@@ -27,39 +35,83 @@
 
       <nav class="nav">
 
-        <a href="#" class="nav-link active" data-page="dashboard">
+        <a
+          href="#"
+          class="nav-link active"
+          data-page="dashboard"
+        >
           Dashboard
         </a>
 
-        <a href="#" class="nav-link" data-page="leads">
+        <a
+          href="#"
+          class="nav-link"
+          data-page="discovery"
+        >
+          Discovery
+        </a>
+
+        <a
+          href="#"
+          class="nav-link"
+          data-page="leads"
+        >
           Leads
         </a>
 
-        <a href="#" class="nav-link" data-page="companies">
+        <a
+          href="#"
+          class="nav-link"
+          data-page="companies"
+        >
           Companies
         </a>
 
-        <a href="#" class="nav-link" data-page="outreach">
+        <a
+          href="#"
+          class="nav-link"
+          data-page="outreach"
+        >
           Outreach
         </a>
 
-        <a href="#" class="nav-link" data-page="conversations">
+        <a
+          href="#"
+          class="nav-link"
+          data-page="conversations"
+        >
           Conversations
         </a>
 
-        <a href="#" class="nav-link" data-page="deals">
+        <a
+          href="#"
+          class="nav-link"
+          data-page="deals"
+        >
           Deals
         </a>
 
-        <a href="#" class="nav-link" data-page="payments">
+        <a
+          href="#"
+          class="nav-link"
+          data-page="payments"
+        >
           Payments
         </a>
 
-        <a href="#" class="nav-link" data-page="services">
+        <a
+          href="#"
+          class="nav-link"
+          data-page="services"
+        >
           Services
         </a>
 
-        <a href="#" class="nav-link" data-page="settings">
+        <a
+          href="#"
+          class="nav-link"
+          data-page="settings"
+        >
           Settings
         </a>
 
@@ -68,7 +120,9 @@
     </aside>
 
 
-    <!-- MAIN -->
+    <!-- =========================
+         MAIN
+    ========================== -->
 
     <main class="main">
 
@@ -87,7 +141,6 @@
           </p>
 
         </div>
-
 
         <div class="profile">
 
@@ -109,7 +162,7 @@
         class="page active-page"
       >
 
-        <section class="stats">
+        <div class="stats">
 
           <div class="card">
 
@@ -146,7 +199,7 @@
           <div class="card">
 
             <div class="stat-label">
-              Interested
+              Interested Leads
             </div>
 
             <div
@@ -162,7 +215,7 @@
           <div class="card">
 
             <div class="stat-label">
-              Deals
+              Total Deals
             </div>
 
             <div
@@ -174,10 +227,12 @@
 
           </div>
 
-        </section>
+        </div>
 
 
-        <section class="content-grid">
+        <div class="content-grid">
+
+          <!-- RECENT ACTIVITY -->
 
           <div class="card">
 
@@ -187,12 +242,14 @@
                 Recent Activity
               </h2>
 
-              <a href="#">
-                View all
+              <a
+                href="#"
+                data-page-link="leads"
+              >
+                View leads
               </a>
 
             </div>
-
 
             <div
               class="activity"
@@ -206,11 +263,11 @@
                 </div>
 
                 <strong>
-                  Your agency is ready
+                  No activity yet
                 </strong>
 
                 <p>
-                  Activity will appear here as your workflow runs.
+                  Your latest agency activity will appear here.
                 </p>
 
               </div>
@@ -220,12 +277,14 @@
           </div>
 
 
+          <!-- PIPELINE -->
+
           <div class="card">
 
             <div class="section-header">
 
               <h2>
-                Sales Pipeline
+                Pipeline
               </h2>
 
             </div>
@@ -236,7 +295,7 @@
               <div class="pipeline-row">
 
                 <span>
-                  New Leads
+                  New
                 </span>
 
                 <span
@@ -316,7 +375,236 @@
 
           </div>
 
-        </section>
+        </div>
+
+      </section>
+
+
+      <!-- =========================
+           DISCOVERY PAGE
+      ========================== -->
+
+      <section
+        id="discovery-page"
+        class="page"
+      >
+
+        <div class="page-toolbar">
+
+          <div>
+
+            <h2>
+              Company Discovery
+            </h2>
+
+            <p>
+              Define what kind of companies the agency should discover.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <!-- DISCOVERY FORM -->
+
+        <div
+          class="card"
+          style="padding: 22px; margin-bottom: 20px;"
+        >
+
+          <form id="discovery-form">
+
+            <div class="form-grid">
+
+              <div class="form-group">
+
+                <label for="discovery-industry">
+                  Industry
+                </label>
+
+                <input
+                  id="discovery-industry"
+                  name="industry"
+                  type="text"
+                  placeholder="Restaurants, hotels, perfume..."
+                  required
+                >
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label for="discovery-location">
+                  Location
+                </label>
+
+                <input
+                  id="discovery-location"
+                  name="location"
+                  type="text"
+                  placeholder="Rabat, Casablanca..."
+                  required
+                >
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label for="discovery-limit">
+                  Number of companies
+                </label>
+
+                <input
+                  id="discovery-limit"
+                  name="limit"
+                  type="number"
+                  min="1"
+                  max="100"
+                  value="25"
+                >
+
+              </div>
+
+
+              <div class="form-group">
+
+                <label>
+                  Requirements
+                </label>
+
+                <div
+                  style="
+                    display:flex;
+                    align-items:center;
+                    gap:8px;
+                    min-height:40px;
+                  "
+                >
+
+                  <label
+                    style="
+                      display:flex;
+                      align-items:center;
+                      gap:6px;
+                      color:#aaa;
+                      font-size:11px;
+                    "
+                  >
+
+                    <input
+                      type="checkbox"
+                      name="requirements"
+                      value="website"
+                    >
+
+                    Website
+
+                  </label>
+
+
+                  <label
+                    style="
+                      display:flex;
+                      align-items:center;
+                      gap:6px;
+                      color:#aaa;
+                      font-size:11px;
+                    "
+                  >
+
+                    <input
+                      type="checkbox"
+                      name="requirements"
+                      value="instagram"
+                    >
+
+                    Instagram
+
+                  </label>
+
+                </div>
+
+              </div>
+
+
+              <div
+                class="form-group full-width"
+                style="
+                  display:flex;
+                  flex-direction:row;
+                  align-items:center;
+                  justify-content:space-between;
+                  gap:15px;
+                "
+              >
+
+                <span
+                  id="discovery-status"
+                  style="
+                    color:#777780;
+                    font-size:11px;
+                  "
+                >
+                  Ready
+                </span>
+
+
+                <button
+                  type="submit"
+                  class="primary-button"
+                >
+                  Start Discovery
+                </button>
+
+              </div>
+
+            </div>
+
+          </form>
+
+        </div>
+
+
+        <!-- DISCOVERY RESULTS -->
+
+        <div class="card">
+
+          <div class="section-header">
+
+            <h2>
+              Discovered Companies
+            </h2>
+
+          </div>
+
+
+          <div
+            id="discovery-results"
+            class="activity"
+          >
+
+            <div class="empty-state">
+
+              <div class="empty-icon">
+                AI
+              </div>
+
+              <strong>
+                No companies discovered yet
+              </strong>
+
+              <p>
+                Configure your discovery criteria and start a search.
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
 
       </section>
 
@@ -346,8 +634,8 @@
 
 
           <button
-            class="primary-button"
             id="add-lead-button"
+            class="primary-button"
           >
             + Add Lead
           </button>
@@ -360,9 +648,9 @@
           <div class="table-toolbar">
 
             <input
-              type="search"
               id="lead-search"
               class="search-input"
+              type="text"
               placeholder="Search leads..."
             >
 
@@ -438,20 +726,20 @@
               </thead>
 
 
-              <tbody id="leads-table-body">
-
-              </tbody>
+              <tbody
+                id="leads-table-body"
+              ></tbody>
 
             </table>
 
 
             <div
-              class="table-empty"
               id="leads-empty"
+              class="table-empty"
             >
 
               <div class="empty-icon">
-                +
+                AI
               </div>
 
               <strong>
@@ -459,7 +747,7 @@
               </strong>
 
               <p>
-                Add your first lead to start building your pipeline.
+                Add a lead or discover companies automatically.
               </p>
 
             </div>
@@ -491,7 +779,7 @@
           </h2>
 
           <p>
-            Company intelligence will live here.
+            Company intelligence will be built here.
           </p>
 
         </div>
@@ -515,7 +803,7 @@
           </h2>
 
           <p>
-            AI-generated outreach will appear here.
+            Outreach automation will be built here.
           </p>
 
         </div>
@@ -531,7 +819,7 @@
         <div class="placeholder-page">
 
           <div class="placeholder-icon">
-            CH
+            AI
           </div>
 
           <h2>
@@ -555,7 +843,7 @@
         <div class="placeholder-page">
 
           <div class="placeholder-icon">
-            DL
+            $
           </div>
 
           <h2>
@@ -563,7 +851,7 @@
           </h2>
 
           <p>
-            Your sales opportunities will appear here.
+            Deal management will be built here.
           </p>
 
         </div>
@@ -587,7 +875,7 @@
           </h2>
 
           <p>
-            Payment tracking will appear here.
+            Payment management will be built here.
           </p>
 
         </div>
@@ -603,7 +891,7 @@
         <div class="placeholder-page">
 
           <div class="placeholder-icon">
-            SV
+            AI
           </div>
 
           <h2>
@@ -611,7 +899,7 @@
           </h2>
 
           <p>
-            Your service catalog will appear here.
+            Your agency services will be managed here.
           </p>
 
         </div>
@@ -627,7 +915,7 @@
         <div class="placeholder-page">
 
           <div class="placeholder-icon">
-            ST
+            ⚙
           </div>
 
           <h2>
@@ -635,7 +923,7 @@
           </h2>
 
           <p>
-            Agency settings will appear here.
+            Agency settings will be configured here.
           </p>
 
         </div>
@@ -647,11 +935,13 @@
   </div>
 
 
-  <!-- ADD LEAD MODAL -->
+  <!-- =========================
+       ADD LEAD MODAL
+  ========================== -->
 
   <div
-    class="modal-overlay"
     id="lead-modal"
+    class="modal-overlay"
   >
 
     <div class="modal">
@@ -665,15 +955,16 @@
           </h2>
 
           <p>
-            Add a potential client to your pipeline.
+            Add a potential client manually.
           </p>
 
         </div>
 
 
         <button
-          class="modal-close"
           id="close-lead-modal"
+          class="modal-close"
+          type="button"
         >
           ×
         </button>
@@ -695,7 +986,7 @@
               id="company-name"
               name="company"
               type="text"
-              placeholder="Example Company"
+              placeholder="Company name"
               required
             >
 
@@ -746,7 +1037,7 @@
               id="email"
               name="email"
               type="email"
-              placeholder="contact@example.com"
+              placeholder="email@example.com"
             >
 
           </div>
@@ -773,12 +1064,13 @@
         <div class="modal-actions">
 
           <button
+            id="cancel-lead"
             type="button"
             class="secondary-button"
-            id="cancel-lead"
           >
             Cancel
           </button>
+
 
           <button
             type="submit"
@@ -796,7 +1088,12 @@
   </div>
 
 
+  <!-- =========================
+       SCRIPTS
+  ========================== -->
+
   <script src="js/app.js"></script>
+  <script src="js/discovery.js"></script>
 
 </body>
 </html>
