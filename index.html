@@ -13,6 +13,8 @@
 
   <div class="app">
 
+    <!-- SIDEBAR -->
+
     <aside class="sidebar">
 
       <div class="logo">
@@ -24,152 +26,617 @@
       </div>
 
       <nav class="nav">
-        <a href="#" class="active">Dashboard</a>
-        <a href="#">Leads</a>
-        <a href="#">Companies</a>
-        <a href="#">Outreach</a>
-        <a href="#">Conversations</a>
-        <a href="#">Deals</a>
-        <a href="#">Payments</a>
-        <a href="#">Services</a>
-        <a href="#">Settings</a>
+
+        <a href="#" class="nav-link active" data-page="dashboard">
+          Dashboard
+        </a>
+
+        <a href="#" class="nav-link" data-page="leads">
+          Leads
+        </a>
+
+        <a href="#" class="nav-link" data-page="companies">
+          Companies
+        </a>
+
+        <a href="#" class="nav-link" data-page="outreach">
+          Outreach
+        </a>
+
+        <a href="#" class="nav-link" data-page="conversations">
+          Conversations
+        </a>
+
+        <a href="#" class="nav-link" data-page="deals">
+          Deals
+        </a>
+
+        <a href="#" class="nav-link" data-page="payments">
+          Payments
+        </a>
+
+        <a href="#" class="nav-link" data-page="services">
+          Services
+        </a>
+
+        <a href="#" class="nav-link" data-page="settings">
+          Settings
+        </a>
+
       </nav>
 
     </aside>
 
 
+    <!-- MAIN -->
+
     <main class="main">
 
-      <div class="topbar">
+      <!-- TOPBAR -->
+
+      <header class="topbar">
 
         <div class="welcome">
-          <h1>Good evening.</h1>
-          <p>Here's what's happening with your agency.</p>
+
+          <h1 id="page-title">
+            Dashboard
+          </h1>
+
+          <p id="page-subtitle">
+            Here's what's happening with your agency.
+          </p>
+
         </div>
+
 
         <div class="profile">
-          <div class="avatar">AI</div>
+
+          <div class="avatar">
+            AI
+          </div>
+
         </div>
 
-      </div>
+      </header>
 
 
-      <section class="stats">
+      <!-- =========================
+           DASHBOARD PAGE
+      ========================== -->
 
-        <div class="card">
-          <div class="stat-label">Total Leads</div>
-          <div class="stat-number">0</div>
+      <section
+        id="dashboard-page"
+        class="page active-page"
+      >
+
+        <section class="stats">
+
+          <div class="card">
+
+            <div class="stat-label">
+              Total Leads
+            </div>
+
+            <div
+              class="stat-number"
+              id="total-leads"
+            >
+              0
+            </div>
+
+          </div>
+
+
+          <div class="card">
+
+            <div class="stat-label">
+              Active Conversations
+            </div>
+
+            <div
+              class="stat-number"
+              id="active-conversations"
+            >
+              0
+            </div>
+
+          </div>
+
+
+          <div class="card">
+
+            <div class="stat-label">
+              Interested
+            </div>
+
+            <div
+              class="stat-number"
+              id="interested-leads"
+            >
+              0
+            </div>
+
+          </div>
+
+
+          <div class="card">
+
+            <div class="stat-label">
+              Deals
+            </div>
+
+            <div
+              class="stat-number"
+              id="total-deals"
+            >
+              0
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <section class="content-grid">
+
+          <div class="card">
+
+            <div class="section-header">
+
+              <h2>
+                Recent Activity
+              </h2>
+
+              <a href="#">
+                View all
+              </a>
+
+            </div>
+
+
+            <div
+              class="activity"
+              id="recent-activity"
+            >
+
+              <div class="empty-state">
+
+                <div class="empty-icon">
+                  AI
+                </div>
+
+                <strong>
+                  Your agency is ready
+                </strong>
+
+                <p>
+                  Activity will appear here as your workflow runs.
+                </p>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="card">
+
+            <div class="section-header">
+
+              <h2>
+                Sales Pipeline
+              </h2>
+
+            </div>
+
+
+            <div class="pipeline">
+
+              <div class="pipeline-row">
+
+                <span>
+                  New Leads
+                </span>
+
+                <span
+                  class="pipeline-number"
+                  id="pipeline-new"
+                >
+                  0
+                </span>
+
+              </div>
+
+
+              <div class="pipeline-row">
+
+                <span>
+                  Qualified
+                </span>
+
+                <span
+                  class="pipeline-number"
+                  id="pipeline-qualified"
+                >
+                  0
+                </span>
+
+              </div>
+
+
+              <div class="pipeline-row">
+
+                <span>
+                  Interested
+                </span>
+
+                <span
+                  class="pipeline-number"
+                  id="pipeline-interested"
+                >
+                  0
+                </span>
+
+              </div>
+
+
+              <div class="pipeline-row">
+
+                <span>
+                  Negotiating
+                </span>
+
+                <span
+                  class="pipeline-number"
+                  id="pipeline-negotiating"
+                >
+                  0
+                </span>
+
+              </div>
+
+
+              <div class="pipeline-row">
+
+                <span>
+                  Payment Pending
+                </span>
+
+                <span
+                  class="pipeline-number"
+                  id="pipeline-payment"
+                >
+                  0
+                </span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+      </section>
+
+
+      <!-- =========================
+           LEADS PAGE
+      ========================== -->
+
+      <section
+        id="leads-page"
+        class="page"
+      >
+
+        <div class="page-toolbar">
+
+          <div>
+
+            <h2>
+              Leads
+            </h2>
+
+            <p>
+              Manage and qualify potential clients.
+            </p>
+
+          </div>
+
+
+          <button
+            class="primary-button"
+            id="add-lead-button"
+          >
+            + Add Lead
+          </button>
+
         </div>
 
-        <div class="card">
-          <div class="stat-label">Active Conversations</div>
-          <div class="stat-number">0</div>
-        </div>
 
         <div class="card">
-          <div class="stat-label">Interested</div>
-          <div class="stat-number">0</div>
-        </div>
 
-        <div class="card">
-          <div class="stat-label">Deals</div>
-          <div class="stat-number">0</div>
+          <div class="table-toolbar">
+
+            <input
+              type="search"
+              id="lead-search"
+              class="search-input"
+              placeholder="Search leads..."
+            >
+
+
+            <select
+              id="lead-filter"
+              class="filter-select"
+            >
+
+              <option value="all">
+                All statuses
+              </option>
+
+              <option value="new">
+                New
+              </option>
+
+              <option value="qualified">
+                Qualified
+              </option>
+
+              <option value="interested">
+                Interested
+              </option>
+
+              <option value="negotiating">
+                Negotiating
+              </option>
+
+              <option value="payment">
+                Payment Pending
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <div class="table-wrapper">
+
+            <table class="data-table">
+
+              <thead>
+
+                <tr>
+
+                  <th>
+                    Company
+                  </th>
+
+                  <th>
+                    Industry
+                  </th>
+
+                  <th>
+                    City
+                  </th>
+
+                  <th>
+                    Status
+                  </th>
+
+                  <th>
+                    Score
+                  </th>
+
+                  <th>
+                    Action
+                  </th>
+
+                </tr>
+
+              </thead>
+
+
+              <tbody id="leads-table-body">
+
+              </tbody>
+
+            </table>
+
+
+            <div
+              class="table-empty"
+              id="leads-empty"
+            >
+
+              <div class="empty-icon">
+                +
+              </div>
+
+              <strong>
+                No leads found
+              </strong>
+
+              <p>
+                Add your first lead to start building your pipeline.
+              </p>
+
+            </div>
+
+          </div>
+
         </div>
 
       </section>
 
 
-      <section class="content-grid">
+      <!-- =========================
+           OTHER PAGES
+      ========================== -->
 
-        <div class="card">
+      <section
+        id="companies-page"
+        class="page"
+      >
 
-          <div class="section-header">
-            <h2>Recent Activity</h2>
-            <a href="#">View all</a>
+        <div class="placeholder-page">
+
+          <div class="placeholder-icon">
+            CO
           </div>
 
-          <div class="activity">
+          <h2>
+            Companies
+          </h2>
 
-            <div class="activity-item">
-
-              <div class="activity-icon">AI</div>
-
-              <div class="activity-text">
-                <strong>AI Agency is ready</strong>
-                <p>Your workspace has been initialized.</p>
-              </div>
-
-              <div class="time">Now</div>
-
-            </div>
-
-
-            <div class="activity-item">
-
-              <div class="activity-icon">+</div>
-
-              <div class="activity-text">
-                <strong>No leads yet</strong>
-                <p>Leads will appear here once added.</p>
-              </div>
-
-              <div class="time">—</div>
-
-            </div>
-
-
-            <div class="activity-item">
-
-              <div class="activity-icon">$</div>
-
-              <div class="activity-text">
-                <strong>No deals yet</strong>
-                <p>Your future deals will appear here.</p>
-              </div>
-
-              <div class="time">—</div>
-
-            </div>
-
-          </div>
+          <p>
+            Company intelligence will live here.
+          </p>
 
         </div>
 
+      </section>
 
-        <div class="card">
 
-          <div class="section-header">
-            <h2>Sales Pipeline</h2>
+      <section
+        id="outreach-page"
+        class="page"
+      >
+
+        <div class="placeholder-page">
+
+          <div class="placeholder-icon">
+            AI
           </div>
 
-          <div class="pipeline">
+          <h2>
+            Outreach
+          </h2>
 
-            <div class="pipeline-row">
-              <span>New Leads</span>
-              <span class="pipeline-number">0</span>
-            </div>
+          <p>
+            AI-generated outreach will appear here.
+          </p>
 
-            <div class="pipeline-row">
-              <span>Qualified</span>
-              <span class="pipeline-number">0</span>
-            </div>
+        </div>
 
-            <div class="pipeline-row">
-              <span>Interested</span>
-              <span class="pipeline-number">0</span>
-            </div>
+      </section>
 
-            <div class="pipeline-row">
-              <span>Negotiating</span>
-              <span class="pipeline-number">0</span>
-            </div>
 
-            <div class="pipeline-row">
-              <span>Payment Pending</span>
-              <span class="pipeline-number">0</span>
-            </div>
+      <section
+        id="conversations-page"
+        class="page"
+      >
 
+        <div class="placeholder-page">
+
+          <div class="placeholder-icon">
+            CH
           </div>
+
+          <h2>
+            Conversations
+          </h2>
+
+          <p>
+            Client conversations will appear here.
+          </p>
+
+        </div>
+
+      </section>
+
+
+      <section
+        id="deals-page"
+        class="page"
+      >
+
+        <div class="placeholder-page">
+
+          <div class="placeholder-icon">
+            DL
+          </div>
+
+          <h2>
+            Deals
+          </h2>
+
+          <p>
+            Your sales opportunities will appear here.
+          </p>
+
+        </div>
+
+      </section>
+
+
+      <section
+        id="payments-page"
+        class="page"
+      >
+
+        <div class="placeholder-page">
+
+          <div class="placeholder-icon">
+            $
+          </div>
+
+          <h2>
+            Payments
+          </h2>
+
+          <p>
+            Payment tracking will appear here.
+          </p>
+
+        </div>
+
+      </section>
+
+
+      <section
+        id="services-page"
+        class="page"
+      >
+
+        <div class="placeholder-page">
+
+          <div class="placeholder-icon">
+            SV
+          </div>
+
+          <h2>
+            Services
+          </h2>
+
+          <p>
+            Your service catalog will appear here.
+          </p>
+
+        </div>
+
+      </section>
+
+
+      <section
+        id="settings-page"
+        class="page"
+      >
+
+        <div class="placeholder-page">
+
+          <div class="placeholder-icon">
+            ST
+          </div>
+
+          <h2>
+            Settings
+          </h2>
+
+          <p>
+            Agency settings will appear here.
+          </p>
 
         </div>
 
@@ -178,6 +645,156 @@
     </main>
 
   </div>
+
+
+  <!-- ADD LEAD MODAL -->
+
+  <div
+    class="modal-overlay"
+    id="lead-modal"
+  >
+
+    <div class="modal">
+
+      <div class="modal-header">
+
+        <div>
+
+          <h2>
+            Add Lead
+          </h2>
+
+          <p>
+            Add a potential client to your pipeline.
+          </p>
+
+        </div>
+
+
+        <button
+          class="modal-close"
+          id="close-lead-modal"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <form id="lead-form">
+
+        <div class="form-grid">
+
+          <div class="form-group">
+
+            <label for="company-name">
+              Company name
+            </label>
+
+            <input
+              id="company-name"
+              name="company"
+              type="text"
+              placeholder="Example Company"
+              required
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label for="industry">
+              Industry
+            </label>
+
+            <input
+              id="industry"
+              name="industry"
+              type="text"
+              placeholder="Restaurant"
+              required
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label for="city">
+              City
+            </label>
+
+            <input
+              id="city"
+              name="city"
+              type="text"
+              placeholder="Rabat"
+              required
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label for="email">
+              Email
+            </label>
+
+            <input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="contact@example.com"
+            >
+
+          </div>
+
+
+          <div class="form-group full-width">
+
+            <label for="website">
+              Website
+            </label>
+
+            <input
+              id="website"
+              name="website"
+              type="url"
+              placeholder="https://example.com"
+            >
+
+          </div>
+
+        </div>
+
+
+        <div class="modal-actions">
+
+          <button
+            type="button"
+            class="secondary-button"
+            id="cancel-lead"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            class="primary-button"
+          >
+            Add Lead
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
 
   <script src="js/app.js"></script>
 
