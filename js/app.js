@@ -1,3 +1,5 @@
+const STORAGE_KEY = "ai_agency_data";
+
 const appState = {
   leads: [],
   companies: [],
@@ -62,6 +64,8 @@ const pageNames = {
 document.addEventListener("DOMContentLoaded", initializeApp);
 
 function initializeApp() {
+  loadData();
+
   setupNavigation();
   setupLeadModal();
   setupLeadSearch();
@@ -73,31 +77,115 @@ function initializeApp() {
 
 
 /* =========================
+   LOCAL STORAGE
+========================= */
+
+function saveData() {
+  try {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(appState)
+    );
+  } catch (error) {
+    console.error(
+      "Could not save application data:",
+      error
+    );
+  }
+}
+
+
+function loadData() {
+  try {
+    const savedData =
+      localStorage.getItem(STORAGE_KEY);
+
+    if (!savedData) {
+      return;
+    }
+
+    const parsedData =
+      JSON.parse(savedData);
+
+    appState.leads =
+      Array.isArray(parsedData.leads)
+        ? parsedData.leads
+        : [];
+
+    appState.companies =
+      Array.isArray(parsedData.companies)
+        ? parsedData.companies
+        : [];
+
+    appState.conversations =
+      Array.isArray(parsedData.conversations)
+        ? parsedData.conversations
+        : [];
+
+    appState.deals =
+      Array.isArray(parsedData.deals)
+        ? parsedData.deals
+        : [];
+
+    appState.payments =
+      Array.isArray(parsedData.payments)
+        ? parsedData.payments
+        : [];
+
+    appState.services =
+      Array.isArray(parsedData.services)
+        ? parsedData.services
+        : [];
+
+  } catch (error) {
+    console.error(
+      "Could not load application data:",
+      error
+    );
+  }
+}
+
+
+/* =========================
    NAVIGATION
 ========================= */
 
 function setupNavigation() {
-  const navLinks = document.querySelectorAll(".nav-link");
+  const navLinks =
+    document.querySelectorAll(
+      ".nav-link"
+    );
 
   navLinks.forEach((link) => {
-    link.addEventListener("click", (event) => {
-      event.preventDefault();
+    link.addEventListener(
+      "click",
+      (event) => {
+        event.preventDefault();
 
-      const page = link.dataset.page;
+        const page =
+          link.dataset.page;
 
-      if (!page) {
-        return;
+        if (!page) {
+          return;
+        }
+
+        navigateTo(page);
       }
-
-      navigateTo(page);
-    });
+    );
   });
 }
 
 
 function navigateTo(page) {
-  const navLinks = document.querySelectorAll(".nav-link");
-  const pages = document.querySelectorAll(".page");
+  const navLinks =
+    document.querySelectorAll(
+      ".nav-link"
+    );
+
+  const pages =
+    document.querySelectorAll(
+      ".page"
+    );
 
   navLinks.forEach((link) => {
     link.classList.toggle(
@@ -107,15 +195,20 @@ function navigateTo(page) {
   });
 
   pages.forEach((section) => {
-    section.classList.remove("active-page");
+    section.classList.remove(
+      "active-page"
+    );
   });
 
-  const selectedPage = document.getElementById(
-    `${page}-page`
-  );
+  const selectedPage =
+    document.getElementById(
+      `${page}-page`
+    );
 
   if (selectedPage) {
-    selectedPage.classList.add("active-page");
+    selectedPage.classList.add(
+      "active-page"
+    );
   }
 
   updatePageHeader(page);
@@ -123,17 +216,32 @@ function navigateTo(page) {
 
 
 function updatePageHeader(page) {
-  const pageTitle = document.getElementById("page-title");
-  const pageSubtitle = document.getElementById("page-subtitle");
+  const pageTitle =
+    document.getElementById(
+      "page-title"
+    );
 
-  const content = pageNames[page];
+  const pageSubtitle =
+    document.getElementById(
+      "page-subtitle"
+    );
+
+  const content =
+    pageNames[page];
 
   if (!content) {
     return;
   }
 
-  pageTitle.textContent = content.title;
-  pageSubtitle.textContent = content.subtitle;
+  if (pageTitle) {
+    pageTitle.textContent =
+      content.title;
+  }
+
+  if (pageSubtitle) {
+    pageSubtitle.textContent =
+      content.subtitle;
+  }
 }
 
 
@@ -152,9 +260,11 @@ function updateDashboard() {
     appState.conversations.length
   );
 
-  const interestedCount = appState.leads.filter(
-    (lead) => lead.status === "interested"
-  ).length;
+  const interestedCount =
+    appState.leads.filter(
+      (lead) =>
+        lead.status === "interested"
+    ).length;
 
   updateElement(
     "interested-leads",
@@ -179,11 +289,16 @@ function updatePipeline() {
     payment: 0,
   };
 
-  appState.leads.forEach((lead) => {
-    if (pipeline[lead.status] !== undefined) {
-      pipeline[lead.status]++;
+  appState.leads.forEach(
+    (lead) => {
+      if (
+        pipeline[lead.status] !==
+        undefined
+      ) {
+        pipeline[lead.status]++;
+      }
     }
-  });
+  );
 
   updateElement(
     "pipeline-new",
@@ -213,74 +328,111 @@ function updatePipeline() {
 
 
 /* =========================
-   LEADS
+   LEAD MODAL
 ========================= */
 
 function setupLeadModal() {
   const openButton =
-    document.getElementById("add-lead-button");
+    document.getElementById(
+      "add-lead-button"
+    );
 
   const modal =
-    document.getElementById("lead-modal");
+    document.getElementById(
+      "lead-modal"
+    );
 
   const closeButton =
-    document.getElementById("close-lead-modal");
+    document.getElementById(
+      "close-lead-modal"
+    );
 
   const cancelButton =
-    document.getElementById("cancel-lead");
+    document.getElementById(
+      "cancel-lead"
+    );
 
   const form =
-    document.getElementById("lead-form");
+    document.getElementById(
+      "lead-form"
+    );
 
 
-  if (!openButton || !modal) {
+  if (
+    !openButton ||
+    !modal ||
+    !form
+  ) {
     return;
   }
 
 
-  openButton.addEventListener("click", () => {
-    openLeadModal();
-  });
+  openButton.addEventListener(
+    "click",
+    openLeadModal
+  );
 
 
-  closeButton.addEventListener("click", () => {
-    closeLeadModal();
-  });
+  if (closeButton) {
+    closeButton.addEventListener(
+      "click",
+      closeLeadModal
+    );
+  }
 
 
-  cancelButton.addEventListener("click", () => {
-    closeLeadModal();
-  });
+  if (cancelButton) {
+    cancelButton.addEventListener(
+      "click",
+      closeLeadModal
+    );
+  }
 
 
-  modal.addEventListener("click", (event) => {
-    if (event.target === modal) {
-      closeLeadModal();
+  modal.addEventListener(
+    "click",
+    (event) => {
+      if (
+        event.target === modal
+      ) {
+        closeLeadModal();
+      }
     }
-  });
+  );
 
 
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
+  form.addEventListener(
+    "submit",
+    (event) => {
+      event.preventDefault();
 
-    createLeadFromForm(form);
+      createLeadFromForm(form);
 
-    closeLeadModal();
+      closeLeadModal();
 
-    form.reset();
-  });
+      form.reset();
+    }
+  );
 }
 
 
 function openLeadModal() {
   const modal =
-    document.getElementById("lead-modal");
+    document.getElementById(
+      "lead-modal"
+    );
+
+  if (!modal) {
+    return;
+  }
 
   modal.classList.add("open");
 
   setTimeout(() => {
     document
-      .getElementById("company-name")
+      .getElementById(
+        "company-name"
+      )
       ?.focus();
   }, 50);
 }
@@ -288,60 +440,87 @@ function openLeadModal() {
 
 function closeLeadModal() {
   const modal =
-    document.getElementById("lead-modal");
+    document.getElementById(
+      "lead-modal"
+    );
+
+  if (!modal) {
+    return;
+  }
 
   modal.classList.remove("open");
 }
 
 
+/* =========================
+   CREATE LEAD
+========================= */
+
 function createLeadFromForm(form) {
-  const formData = new FormData(form);
+  const formData =
+    new FormData(form);
 
   const lead = {
     id: generateId(),
 
     company: String(
-      formData.get("company") || ""
+      formData.get("company") ||
+        ""
     ).trim(),
 
     industry: String(
-      formData.get("industry") || ""
+      formData.get("industry") ||
+        ""
     ).trim(),
 
     city: String(
-      formData.get("city") || ""
+      formData.get("city") ||
+        ""
     ).trim(),
 
     email: String(
-      formData.get("email") || ""
+      formData.get("email") ||
+        ""
     ).trim(),
 
     website: String(
-      formData.get("website") || ""
+      formData.get("website") ||
+        ""
     ).trim(),
 
     status: "new",
 
     score: calculateLeadScore({
       industry: String(
-        formData.get("industry") || ""
+        formData.get("industry") ||
+          ""
       ),
 
       website: String(
-        formData.get("website") || ""
+        formData.get("website") ||
+          ""
       ),
 
       email: String(
-        formData.get("email") || ""
+        formData.get("email") ||
+          ""
       ),
     }),
 
-    createdAt: new Date().toISOString(),
+    createdAt:
+      new Date().toISOString(),
   };
 
-  appState.leads.unshift(lead);
+
+  appState.leads.unshift(
+    lead
+  );
+
+
+  saveData();
 
   renderLeads();
+
   updateDashboard();
 
   addActivity(
@@ -358,15 +537,21 @@ function createLeadFromForm(form) {
 function calculateLeadScore(data) {
   let score = 50;
 
-  if (data.website.trim()) {
+  if (
+    data.website.trim()
+  ) {
     score += 10;
   }
 
-  if (data.email.trim()) {
+  if (
+    data.email.trim()
+  ) {
     score += 10;
   }
 
-  if (data.industry.trim()) {
+  if (
+    data.industry.trim()
+  ) {
     score += 10;
   }
 
@@ -385,22 +570,28 @@ function calculateLeadScore(data) {
   ];
 
   const industry =
-    data.industry.trim().toLowerCase();
+    data.industry
+      .trim()
+      .toLowerCase();
 
   if (
     highPotentialIndustries.some(
-      (item) => industry.includes(item)
+      (item) =>
+        industry.includes(item)
     )
   ) {
     score += 10;
   }
 
-  return Math.min(score, 100);
+  return Math.min(
+    score,
+    100
+  );
 }
 
 
 /* =========================
-   LEAD RENDERING
+   RENDER LEADS
 ========================= */
 
 function renderLeads() {
@@ -414,9 +605,13 @@ function renderLeads() {
       "leads-empty"
     );
 
-  if (!tableBody || !emptyState) {
+  if (
+    !tableBody ||
+    !emptyState
+  ) {
     return;
   }
+
 
   const searchInput =
     document.getElementById(
@@ -428,115 +623,146 @@ function renderLeads() {
       "lead-filter"
     );
 
+
   const searchTerm =
     searchInput?.value
       ?.trim()
       .toLowerCase() || "";
 
+
   const filter =
-    filterSelect?.value || "all";
+    filterSelect?.value ||
+    "all";
 
 
   const filteredLeads =
-    appState.leads.filter((lead) => {
+    appState.leads.filter(
+      (lead) => {
 
-      const matchesSearch =
-        !searchTerm ||
-        lead.company
-          .toLowerCase()
-          .includes(searchTerm) ||
-        lead.industry
-          .toLowerCase()
-          .includes(searchTerm) ||
-        lead.city
-          .toLowerCase()
-          .includes(searchTerm);
-
-
-      const matchesFilter =
-        filter === "all" ||
-        lead.status === filter;
+        const matchesSearch =
+          !searchTerm ||
+          lead.company
+            .toLowerCase()
+            .includes(searchTerm) ||
+          lead.industry
+            .toLowerCase()
+            .includes(searchTerm) ||
+          lead.city
+            .toLowerCase()
+            .includes(searchTerm);
 
 
-      return (
-        matchesSearch &&
-        matchesFilter
-      );
-    });
+        const matchesFilter =
+          filter === "all" ||
+          lead.status === filter;
+
+
+        return (
+          matchesSearch &&
+          matchesFilter
+        );
+      }
+    );
 
 
   tableBody.innerHTML = "";
 
 
-  if (filteredLeads.length === 0) {
-    emptyState.style.display = "flex";
+  if (
+    filteredLeads.length === 0
+  ) {
+    emptyState.style.display =
+      "flex";
+
     return;
   }
 
 
-  emptyState.style.display = "none";
+  emptyState.style.display =
+    "none";
 
 
-  filteredLeads.forEach((lead) => {
-    const row =
-      document.createElement("tr");
+  filteredLeads.forEach(
+    (lead) => {
+
+      const row =
+        document.createElement(
+          "tr"
+        );
 
 
-    row.innerHTML = `
-      <td class="company-cell">
-        ${escapeHtml(lead.company)}
-      </td>
+      row.innerHTML = `
+        <td class="company-cell">
+          ${escapeHtml(
+            lead.company
+          )}
+        </td>
 
-      <td>
-        ${escapeHtml(lead.industry)}
-      </td>
+        <td>
+          ${escapeHtml(
+            lead.industry
+          )}
+        </td>
 
-      <td>
-        ${escapeHtml(lead.city)}
-      </td>
+        <td>
+          ${escapeHtml(
+            lead.city
+          )}
+        </td>
 
-      <td>
-        <span class="status ${getStatusClass(lead.status)}">
-          ${getStatusLabel(lead.status)}
-        </span>
-      </td>
+        <td>
+          <span class="status ${getStatusClass(
+            lead.status
+          )}">
+            ${getStatusLabel(
+              lead.status
+            )}
+          </span>
+        </td>
 
-      <td class="score">
-        ${lead.score}
-      </td>
+        <td class="score">
+          ${lead.score}
+        </td>
 
-      <td>
-        <button
-          class="table-action"
-          data-lead-id="${lead.id}"
-        >
-          View
-        </button>
-      </td>
-    `;
-
-
-    const viewButton =
-      row.querySelector(
-        ".table-action"
-      );
+        <td>
+          <button
+            class="table-action"
+            data-lead-id="${lead.id}"
+          >
+            View
+          </button>
+        </td>
+      `;
 
 
-    viewButton.addEventListener(
-      "click",
-      () => {
-        viewLead(lead.id);
+      const viewButton =
+        row.querySelector(
+          ".table-action"
+        );
+
+
+      if (viewButton) {
+        viewButton.addEventListener(
+          "click",
+          () => {
+            viewLead(
+              lead.id
+            );
+          }
+        );
       }
-    );
 
 
-    tableBody.appendChild(row);
-  });
+      tableBody.appendChild(
+        row
+      );
+    }
+  );
 }
 
 
 /* =========================
-   SEARCH + FILTER
+   SEARCH
 ========================= */
 
 function setupLeadSearch() {
@@ -556,6 +782,10 @@ function setupLeadSearch() {
 }
 
 
+/* =========================
+   FILTER
+========================= */
+
 function setupLeadFilter() {
   const select =
     document.getElementById(
@@ -574,28 +804,39 @@ function setupLeadFilter() {
 
 
 /* =========================
-   LEAD VIEW
+   VIEW LEAD
 ========================= */
 
 function viewLead(leadId) {
   const lead =
     appState.leads.find(
-      (item) => item.id === leadId
+      (item) =>
+        item.id === leadId
     );
 
   if (!lead) {
     return;
   }
 
+
   const message = [
     `Company: ${lead.company}`,
     `Industry: ${lead.industry}`,
     `City: ${lead.city}`,
-    `Email: ${lead.email || "Not provided"}`,
-    `Website: ${lead.website || "Not provided"}`,
-    `Status: ${getStatusLabel(lead.status)}`,
+    `Email: ${
+      lead.email ||
+      "Not provided"
+    }`,
+    `Website: ${
+      lead.website ||
+      "Not provided"
+    }`,
+    `Status: ${getStatusLabel(
+      lead.status
+    )}`,
     `Score: ${lead.score}`,
   ].join("\n");
+
 
   alert(message);
 }
@@ -605,7 +846,10 @@ function viewLead(leadId) {
    ACTIVITY
 ========================= */
 
-function addActivity(title, description) {
+function addActivity(
+  title,
+  description
+) {
   const container =
     document.getElementById(
       "recent-activity"
@@ -615,10 +859,12 @@ function addActivity(title, description) {
     return;
   }
 
+
   const emptyState =
     container.querySelector(
       ".empty-state"
     );
+
 
   if (emptyState) {
     emptyState.remove();
@@ -626,7 +872,10 @@ function addActivity(title, description) {
 
 
   const item =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
+
 
   item.className =
     "activity-item";
@@ -643,7 +892,9 @@ function addActivity(title, description) {
       </strong>
 
       <p>
-        ${escapeHtml(description)}
+        ${escapeHtml(
+          description
+        )}
       </p>
     </div>
 
@@ -670,20 +921,30 @@ function getStatusLabel(status) {
     payment: "Payment Pending",
   };
 
-  return labels[status] || "Unknown";
+  return (
+    labels[status] ||
+    "Unknown"
+  );
 }
 
 
 function getStatusClass(status) {
   const classes = {
     new: "status-new",
-    qualified: "status-qualified",
-    interested: "status-interested",
-    negotiating: "status-negotiating",
-    payment: "status-payment",
+    qualified:
+      "status-qualified",
+    interested:
+      "status-interested",
+    negotiating:
+      "status-negotiating",
+    payment:
+      "status-payment",
   };
 
-  return classes[status] || "status-new";
+  return (
+    classes[status] ||
+    "status-new"
+  );
 }
 
 
@@ -691,19 +952,24 @@ function getStatusClass(status) {
    HELPERS
 ========================= */
 
-function updateElement(id, value) {
+function updateElement(
+  id,
+  value
+) {
   const element =
     document.getElementById(id);
 
   if (element) {
-    element.textContent = value;
+    element.textContent =
+      value;
   }
 }
 
 
 function generateId() {
   if (
-    typeof crypto !== "undefined" &&
+    typeof crypto !==
+      "undefined" &&
     crypto.randomUUID
   ) {
     return crypto.randomUUID();
@@ -720,9 +986,24 @@ function generateId() {
 
 function escapeHtml(value) {
   return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
 }
