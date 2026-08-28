@@ -1,1009 +1,1517 @@
-const STORAGE_KEY = "ai_agency_data";
+/* =========================================================
+   AI AGENCY — APP.JS
+   Leads + Dashboard + Navigation + Local Storage
+========================================================= */
 
-const appState = {
-  leads: [],
-  companies: [],
-  conversations: [],
-  deals: [],
-  payments: [],
-  services: [],
-};
+const STORAGE_KEY = "ai_agency_leads";
 
-const pageNames = {
-  dashboard: {
-    title: "Dashboard",
-    subtitle: "Here's what's happening with your agency.",
+const App = {
+
+  state: {
+    currentPage: "dashboard",
+    leads: []
   },
 
-  leads: {
-    title: "Leads",
-    subtitle: "Manage and qualify potential clients.",
+
+  /* =======================================================
+     INIT
+  ======================================================= */
+
+  init() {
+
+    this.loadLeads();
+
+    this.setupNavigation();
+
+    this.setupPageLinks();
+
+    this.setupLeadModal();
+
+    this.setupLeadSearch();
+
+    this.renderLeads();
+
+    this.updateDashboard();
+
   },
 
-  companies: {
-    title: "Companies",
-    subtitle: "Manage your company database.",
+
+  /* =======================================================
+     STORAGE
+  ======================================================= */
+
+  loadLeads() {
+
+    try {
+
+      const saved =
+        localStorage.getItem(STORAGE_KEY);
+
+      this.state.leads =
+        saved
+          ? JSON.parse(saved)
+          : [];
+
+      if (!Array.isArray(this.state.leads)) {
+        this.state.leads = [];
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Could not load leads:",
+        error
+      );
+
+      this.state.leads = [];
+
+    }
+
   },
 
-  outreach: {
-    title: "Outreach",
-    subtitle: "Prepare and manage client outreach.",
-  },
 
-  conversations: {
-    title: "Conversations",
-    subtitle: "Manage your client conversations.",
-  },
+  saveLeads() {
 
-  deals: {
-    title: "Deals",
-    subtitle: "Track your sales opportunities.",
-  },
-
-  payments: {
-    title: "Payments",
-    subtitle: "Track payments and transactions.",
-  },
-
-  services: {
-    title: "Services",
-    subtitle: "Manage the services your agency offers.",
-  },
-
-  settings: {
-    title: "Settings",
-    subtitle: "Manage your agency configuration.",
-  },
-};
-
-
-/* =========================
-   INITIALIZATION
-========================= */
-
-document.addEventListener("DOMContentLoaded", initializeApp);
-
-function initializeApp() {
-  loadData();
-
-  setupNavigation();
-  setupLeadModal();
-  setupLeadSearch();
-  setupLeadFilter();
-
-  renderLeads();
-  updateDashboard();
-}
-
-
-/* =========================
-   LOCAL STORAGE
-========================= */
-
-function saveData() {
-  try {
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify(appState)
+      JSON.stringify(this.state.leads)
     );
-  } catch (error) {
-    console.error(
-      "Could not save application data:",
-      error
+
+  },
+
+
+  /* =======================================================
+     NAVIGATION
+  ======================================================= */
+
+  setupNavigation() {
+
+    const links =
+      document.querySelectorAll(
+        ".nav-link"
+      );
+
+    links.forEach((link) => {
+
+      link.addEventListener(
+        "click",
+        (event) => {
+
+          event.preventDefault();
+
+          const page =
+            link.dataset.page;
+
+          if (page) {
+            this.showPage(page);
+          }
+
+        }
+      );
+
+    });
+
+  },
+
+
+  setupPageLinks() {
+
+    document.querySelectorAll(
+      "[data-page-link]"
+    ).forEach((link) => {
+
+      link.addEventListener(
+        "click",
+        (event) => {
+
+          event.preventDefault();
+
+          this.showPage(
+            link.dataset.pageLink
+          );
+
+        }
+      );
+
+    });
+
+  },
+
+
+  showPage(page) {
+
+    const pages =
+      document.querySelectorAll(
+        ".page"
+      );
+
+    pages.forEach((section) => {
+
+      section.classList.remove(
+        "active-page"
+      );
+
+    });
+
+
+    const target =
+      document.getElementById(
+        `${page}-page`
+      );
+
+    if (target) {
+
+      target.classList.add(
+        "active-page"
+      );
+
+    }
+
+
+    document.querySelectorAll(
+      ".nav-link"
+    ).forEach((link) => {
+
+      link.classList.toggle(
+        "active",
+        link.dataset.page === page
+      );
+
+    });
+
+
+    this.state.currentPage =
+      page;
+
+
+    this.updatePageHeader(
+      page
     );
-  }
-}
 
 
-function loadData() {
-  try {
-    const savedData =
-      localStorage.getItem(STORAGE_KEY);
+    if (page === "leads") {
+      this.renderLeads();
+    }
 
-    if (!savedData) {
+    if (page === "dashboard") {
+      this.updateDashboard();
+    }
+
+  },
+
+
+  updatePageHeader(page) {
+
+    const title =
+      document.getElementById(
+        "page-title"
+      );
+
+    const subtitle =
+      document.getElementById(
+        "page-subtitle"
+      );
+
+
+    const headers = {
+
+      dashboard: [
+        "Dashboard",
+        "Here's what's happening with your agency."
+      ],
+
+      discovery: [
+        "Company Discovery",
+        "Find potential companies automatically."
+      ],
+
+      leads: [
+        "Leads",
+        "Manage and qualify potential clients."
+      ],
+
+      companies: [
+        "Companies",
+        "Company intelligence."
+      ],
+
+      outreach: [
+        "Outreach",
+        "Manage your client outreach."
+      ],
+
+      conversations: [
+        "Conversations",
+        "Manage client conversations."
+      ],
+
+      deals: [
+        "Deals",
+        "Track your opportunities."
+      ],
+
+      payments: [
+        "Payments",
+        "Manage payment activity."
+      ],
+
+      services: [
+        "Services",
+        "Manage your agency services."
+      ],
+
+      settings: [
+        "Settings",
+        "Configure your agency."
+      ]
+
+    };
+
+
+    const data =
+      headers[page] ||
+      headers.dashboard;
+
+
+    if (title) {
+      title.textContent =
+        data[0];
+    }
+
+
+    if (subtitle) {
+      subtitle.textContent =
+        data[1];
+    }
+
+  },
+
+
+  /* =======================================================
+     LEAD MODAL
+  ======================================================= */
+
+  setupLeadModal() {
+
+    const openButton =
+      document.getElementById(
+        "add-lead-button"
+      );
+
+    const modal =
+      document.getElementById(
+        "lead-modal"
+      );
+
+    const closeButton =
+      document.getElementById(
+        "close-lead-modal"
+      );
+
+    const cancelButton =
+      document.getElementById(
+        "cancel-lead"
+      );
+
+    const form =
+      document.getElementById(
+        "lead-form"
+      );
+
+
+    if (openButton) {
+
+      openButton.addEventListener(
+        "click",
+        () => {
+
+          if (modal) {
+            modal.classList.add(
+              "show"
+            );
+          }
+
+        }
+      );
+
+    }
+
+
+    const closeModal = () => {
+
+      if (modal) {
+
+        modal.classList.remove(
+          "show"
+        );
+
+      }
+
+    };
+
+
+    if (closeButton) {
+      closeButton.addEventListener(
+        "click",
+        closeModal
+      );
+    }
+
+
+    if (cancelButton) {
+      cancelButton.addEventListener(
+        "click",
+        closeModal
+      );
+    }
+
+
+    if (modal) {
+
+      modal.addEventListener(
+        "click",
+        (event) => {
+
+          if (
+            event.target === modal
+          ) {
+            closeModal();
+          }
+
+        }
+      );
+
+    }
+
+
+    if (form) {
+
+      form.addEventListener(
+        "submit",
+        (event) => {
+
+          event.preventDefault();
+
+          this.addManualLead(
+            form
+          );
+
+          form.reset();
+
+          closeModal();
+
+        }
+      );
+
+    }
+
+  },
+
+
+  /* =======================================================
+     ADD MANUAL LEAD
+  ======================================================= */
+
+  addManualLead(form) {
+
+    const data =
+      new FormData(form);
+
+
+    const company =
+      String(
+        data.get("company") || ""
+      ).trim();
+
+
+    const industry =
+      String(
+        data.get("industry") || ""
+      ).trim();
+
+
+    const city =
+      String(
+        data.get("city") || ""
+      ).trim();
+
+
+    const email =
+      String(
+        data.get("email") || ""
+      ).trim();
+
+
+    const website =
+      String(
+        data.get("website") || ""
+      ).trim();
+
+
+    if (!company) {
       return;
     }
 
-    const parsedData =
-      JSON.parse(savedData);
 
-    appState.leads =
-      Array.isArray(parsedData.leads)
-        ? parsedData.leads
-        : [];
+    const exists =
+      this.state.leads.some(
+        (lead) =>
+          this.normalize(
+            lead.name || lead.company
+          ) ===
+          this.normalize(company)
+      );
 
-    appState.companies =
-      Array.isArray(parsedData.companies)
-        ? parsedData.companies
-        : [];
 
-    appState.conversations =
-      Array.isArray(parsedData.conversations)
-        ? parsedData.conversations
-        : [];
+    if (exists) {
 
-    appState.deals =
-      Array.isArray(parsedData.deals)
-        ? parsedData.deals
-        : [];
+      alert(
+        "This company is already in Leads."
+      );
 
-    appState.payments =
-      Array.isArray(parsedData.payments)
-        ? parsedData.payments
-        : [];
+      return;
 
-    appState.services =
-      Array.isArray(parsedData.services)
-        ? parsedData.services
-        : [];
+    }
 
-  } catch (error) {
-    console.error(
-      "Could not load application data:",
-      error
+
+    const lead = {
+
+      id:
+        `manual-${Date.now()}`,
+
+      name:
+        company,
+
+      company:
+        company,
+
+      industry:
+        industry || "Unknown",
+
+      city:
+        city || "Unknown",
+
+      email:
+        email,
+
+      website:
+        website,
+
+      instagram:
+        "",
+
+      phone:
+        "",
+
+      status:
+        "new",
+
+      score:
+        this.calculateLeadScore({
+          website,
+          email,
+          phone: "",
+          instagram: "",
+          address: city
+        }),
+
+      source:
+        "Manual",
+
+      addedAt:
+        new Date().toISOString()
+
+    };
+
+
+    this.state.leads.unshift(
+      lead
     );
-  }
-}
 
 
-/* =========================
-   NAVIGATION
-========================= */
+    this.saveLeads();
 
-function setupNavigation() {
-  const navLinks =
-    document.querySelectorAll(
-      ".nav-link"
+    this.renderLeads();
+
+    this.updateDashboard();
+
+  },
+
+
+  /* =======================================================
+     ADD DISCOVERED BUSINESS
+  ======================================================= */
+
+  addDiscoveredLead(business) {
+
+    if (!business) {
+      return;
+    }
+
+
+    const companyName =
+      business.name ||
+      business.company ||
+      "Unknown company";
+
+
+    const exists =
+      this.state.leads.some(
+        (lead) =>
+          this.normalize(
+            lead.name ||
+            lead.company
+          ) ===
+          this.normalize(
+            companyName
+          )
+      );
+
+
+    if (exists) {
+
+      alert(
+        `${companyName} is already in Leads.`
+      );
+
+      return;
+
+    }
+
+
+    const analysis =
+      business.analysis || {};
+
+
+    const lead = {
+
+      id:
+        business.id ||
+        `discovered-${Date.now()}`,
+
+      name:
+        companyName,
+
+      company:
+        companyName,
+
+      industry:
+        business.industry ||
+        "Restaurant",
+
+      city:
+        business.city ||
+        "",
+
+      address:
+        business.address ||
+        "",
+
+      phone:
+        business.phone ||
+        "",
+
+      website:
+        business.website ||
+        "",
+
+      instagram:
+        business.instagram ||
+        "",
+
+      email:
+        business.email ||
+        "",
+
+      latitude:
+        business.latitude ||
+        null,
+
+      longitude:
+        business.longitude ||
+        null,
+
+      mapUrl:
+        business.mapUrl ||
+        "",
+
+      score:
+        analysis.score ||
+        this.calculateLeadScore(
+          business
+        ),
+
+      priority:
+        analysis.priority ||
+        "Medium",
+
+      recommendedService:
+        analysis.service ||
+        "Professional Website",
+
+      opportunities:
+        analysis.opportunities ||
+        [],
+
+      status:
+        "new",
+
+      source:
+        "Discovery",
+
+      addedAt:
+        new Date().toISOString()
+
+    };
+
+
+    this.state.leads.unshift(
+      lead
     );
 
-  navLinks.forEach((link) => {
-    link.addEventListener(
-      "click",
-      (event) => {
-        event.preventDefault();
 
-        const page =
-          link.dataset.page;
+    this.saveLeads();
 
-        if (!page) {
-          return;
+    this.renderLeads();
+
+    this.updateDashboard();
+
+
+    alert(
+      `${companyName} added to Leads.`
+    );
+
+  },
+
+
+  /* =======================================================
+     SCORE
+  ======================================================= */
+
+  calculateLeadScore(data) {
+
+    let score = 40;
+
+
+    if (data.website) {
+      score += 20;
+    } else {
+      score += 5;
+    }
+
+
+    if (data.instagram) {
+      score += 15;
+    }
+
+
+    if (data.phone) {
+      score += 10;
+    }
+
+
+    if (
+      data.address ||
+      data.city
+    ) {
+      score += 5;
+    }
+
+
+    if (data.email) {
+      score += 5;
+    }
+
+
+    return Math.min(
+      score,
+      100
+    );
+
+  },
+
+
+  /* =======================================================
+     SEARCH + FILTER
+  ======================================================= */
+
+  setupLeadSearch() {
+
+    const search =
+      document.getElementById(
+        "lead-search"
+      );
+
+    const filter =
+      document.getElementById(
+        "lead-filter"
+      );
+
+
+    if (search) {
+
+      search.addEventListener(
+        "input",
+        () => {
+
+          this.renderLeads();
+
         }
+      );
 
-        navigateTo(page);
-      }
-    );
-  });
-}
-
-
-function navigateTo(page) {
-  const navLinks =
-    document.querySelectorAll(
-      ".nav-link"
-    );
-
-  const pages =
-    document.querySelectorAll(
-      ".page"
-    );
-
-  navLinks.forEach((link) => {
-    link.classList.toggle(
-      "active",
-      link.dataset.page === page
-    );
-  });
-
-  pages.forEach((section) => {
-    section.classList.remove(
-      "active-page"
-    );
-  });
-
-  const selectedPage =
-    document.getElementById(
-      `${page}-page`
-    );
-
-  if (selectedPage) {
-    selectedPage.classList.add(
-      "active-page"
-    );
-  }
-
-  updatePageHeader(page);
-}
-
-
-function updatePageHeader(page) {
-  const pageTitle =
-    document.getElementById(
-      "page-title"
-    );
-
-  const pageSubtitle =
-    document.getElementById(
-      "page-subtitle"
-    );
-
-  const content =
-    pageNames[page];
-
-  if (!content) {
-    return;
-  }
-
-  if (pageTitle) {
-    pageTitle.textContent =
-      content.title;
-  }
-
-  if (pageSubtitle) {
-    pageSubtitle.textContent =
-      content.subtitle;
-  }
-}
-
-
-/* =========================
-   DASHBOARD
-========================= */
-
-function updateDashboard() {
-  updateElement(
-    "total-leads",
-    appState.leads.length
-  );
-
-  updateElement(
-    "active-conversations",
-    appState.conversations.length
-  );
-
-  const interestedCount =
-    appState.leads.filter(
-      (lead) =>
-        lead.status === "interested"
-    ).length;
-
-  updateElement(
-    "interested-leads",
-    interestedCount
-  );
-
-  updateElement(
-    "total-deals",
-    appState.deals.length
-  );
-
-  updatePipeline();
-}
-
-
-function updatePipeline() {
-  const pipeline = {
-    new: 0,
-    qualified: 0,
-    interested: 0,
-    negotiating: 0,
-    payment: 0,
-  };
-
-  appState.leads.forEach(
-    (lead) => {
-      if (
-        pipeline[lead.status] !==
-        undefined
-      ) {
-        pipeline[lead.status]++;
-      }
     }
-  );
-
-  updateElement(
-    "pipeline-new",
-    pipeline.new
-  );
-
-  updateElement(
-    "pipeline-qualified",
-    pipeline.qualified
-  );
-
-  updateElement(
-    "pipeline-interested",
-    pipeline.interested
-  );
-
-  updateElement(
-    "pipeline-negotiating",
-    pipeline.negotiating
-  );
-
-  updateElement(
-    "pipeline-payment",
-    pipeline.payment
-  );
-}
 
 
-/* =========================
-   LEAD MODAL
-========================= */
+    if (filter) {
 
-function setupLeadModal() {
-  const openButton =
-    document.getElementById(
-      "add-lead-button"
-    );
+      filter.addEventListener(
+        "change",
+        () => {
 
-  const modal =
-    document.getElementById(
-      "lead-modal"
-    );
+          this.renderLeads();
 
-  const closeButton =
-    document.getElementById(
-      "close-lead-modal"
-    );
+        }
+      );
 
-  const cancelButton =
-    document.getElementById(
-      "cancel-lead"
-    );
-
-  const form =
-    document.getElementById(
-      "lead-form"
-    );
-
-
-  if (
-    !openButton ||
-    !modal ||
-    !form
-  ) {
-    return;
-  }
-
-
-  openButton.addEventListener(
-    "click",
-    openLeadModal
-  );
-
-
-  if (closeButton) {
-    closeButton.addEventListener(
-      "click",
-      closeLeadModal
-    );
-  }
-
-
-  if (cancelButton) {
-    cancelButton.addEventListener(
-      "click",
-      closeLeadModal
-    );
-  }
-
-
-  modal.addEventListener(
-    "click",
-    (event) => {
-      if (
-        event.target === modal
-      ) {
-        closeLeadModal();
-      }
     }
-  );
+
+  },
 
 
-  form.addEventListener(
-    "submit",
-    (event) => {
-      event.preventDefault();
+  getFilteredLeads() {
 
-      createLeadFromForm(form);
-
-      closeLeadModal();
-
-      form.reset();
-    }
-  );
-}
+    const search =
+      document.getElementById(
+        "lead-search"
+      );
 
 
-function openLeadModal() {
-  const modal =
-    document.getElementById(
-      "lead-modal"
-    );
-
-  if (!modal) {
-    return;
-  }
-
-  modal.classList.add("open");
-
-  setTimeout(() => {
-    document
-      .getElementById(
-        "company-name"
-      )
-      ?.focus();
-  }, 50);
-}
+    const filter =
+      document.getElementById(
+        "lead-filter"
+      );
 
 
-function closeLeadModal() {
-  const modal =
-    document.getElementById(
-      "lead-modal"
-    );
-
-  if (!modal) {
-    return;
-  }
-
-  modal.classList.remove("open");
-}
+    const searchValue =
+      search
+        ? this.normalize(
+            search.value
+          )
+        : "";
 
 
-/* =========================
-   CREATE LEAD
-========================= */
-
-function createLeadFromForm(form) {
-  const formData =
-    new FormData(form);
-
-  const lead = {
-    id: generateId(),
-
-    company: String(
-      formData.get("company") ||
-        ""
-    ).trim(),
-
-    industry: String(
-      formData.get("industry") ||
-        ""
-    ).trim(),
-
-    city: String(
-      formData.get("city") ||
-        ""
-    ).trim(),
-
-    email: String(
-      formData.get("email") ||
-        ""
-    ).trim(),
-
-    website: String(
-      formData.get("website") ||
-        ""
-    ).trim(),
-
-    status: "new",
-
-    score: calculateLeadScore({
-      industry: String(
-        formData.get("industry") ||
-          ""
-      ),
-
-      website: String(
-        formData.get("website") ||
-          ""
-      ),
-
-      email: String(
-        formData.get("email") ||
-          ""
-      ),
-    }),
-
-    createdAt:
-      new Date().toISOString(),
-  };
+    const filterValue =
+      filter
+        ? filter.value
+        : "all";
 
 
-  appState.leads.unshift(
-    lead
-  );
-
-
-  saveData();
-
-  renderLeads();
-
-  updateDashboard();
-
-  addActivity(
-    "New lead added",
-    `${lead.company} was added to your pipeline.`
-  );
-}
-
-
-/* =========================
-   LEAD SCORING
-========================= */
-
-function calculateLeadScore(data) {
-  let score = 50;
-
-  if (
-    data.website.trim()
-  ) {
-    score += 10;
-  }
-
-  if (
-    data.email.trim()
-  ) {
-    score += 10;
-  }
-
-  if (
-    data.industry.trim()
-  ) {
-    score += 10;
-  }
-
-  const highPotentialIndustries = [
-    "restaurant",
-    "hotel",
-    "perfume",
-    "parfum",
-    "immobilier",
-    "real estate",
-    "clinic",
-    "beauty",
-    "cosmetic",
-    "solar",
-    "energy",
-  ];
-
-  const industry =
-    data.industry
-      .trim()
-      .toLowerCase();
-
-  if (
-    highPotentialIndustries.some(
-      (item) =>
-        industry.includes(item)
-    )
-  ) {
-    score += 10;
-  }
-
-  return Math.min(
-    score,
-    100
-  );
-}
-
-
-/* =========================
-   RENDER LEADS
-========================= */
-
-function renderLeads() {
-  const tableBody =
-    document.getElementById(
-      "leads-table-body"
-    );
-
-  const emptyState =
-    document.getElementById(
-      "leads-empty"
-    );
-
-  if (
-    !tableBody ||
-    !emptyState
-  ) {
-    return;
-  }
-
-
-  const searchInput =
-    document.getElementById(
-      "lead-search"
-    );
-
-  const filterSelect =
-    document.getElementById(
-      "lead-filter"
-    );
-
-
-  const searchTerm =
-    searchInput?.value
-      ?.trim()
-      .toLowerCase() || "";
-
-
-  const filter =
-    filterSelect?.value ||
-    "all";
-
-
-  const filteredLeads =
-    appState.leads.filter(
+    return this.state.leads.filter(
       (lead) => {
 
+        const name =
+          this.normalize(
+            lead.name ||
+            lead.company ||
+            ""
+          );
+
+
+        const industry =
+          this.normalize(
+            lead.industry ||
+            ""
+          );
+
+
+        const city =
+          this.normalize(
+            lead.city ||
+            ""
+          );
+
+
         const matchesSearch =
-          !searchTerm ||
-          lead.company
-            .toLowerCase()
-            .includes(searchTerm) ||
-          lead.industry
-            .toLowerCase()
-            .includes(searchTerm) ||
-          lead.city
-            .toLowerCase()
-            .includes(searchTerm);
+          !searchValue ||
+          name.includes(searchValue) ||
+          industry.includes(searchValue) ||
+          city.includes(searchValue);
 
 
         const matchesFilter =
-          filter === "all" ||
-          lead.status === filter;
+          filterValue === "all" ||
+          lead.status === filterValue;
 
 
         return (
           matchesSearch &&
           matchesFilter
         );
+
+      }
+    );
+
+  },
+
+
+  /* =======================================================
+     RENDER LEADS
+  ======================================================= */
+
+  renderLeads() {
+
+    const body =
+      document.getElementById(
+        "leads-table-body"
+      );
+
+
+    const empty =
+      document.getElementById(
+        "leads-empty"
+      );
+
+
+    if (!body) {
+      return;
+    }
+
+
+    const leads =
+      this.getFilteredLeads();
+
+
+    body.innerHTML = "";
+
+
+    if (!leads.length) {
+
+      if (empty) {
+        empty.style.display =
+          "block";
+      }
+
+      return;
+
+    }
+
+
+    if (empty) {
+      empty.style.display =
+        "none";
+    }
+
+
+    leads.forEach(
+      (lead) => {
+
+        const row =
+          document.createElement(
+            "tr"
+          );
+
+
+        row.innerHTML = `
+
+          <td>
+            <strong>
+              ${this.escapeHTML(
+                lead.name ||
+                lead.company ||
+                "Unknown"
+              )}
+            </strong>
+          </td>
+
+          <td>
+            ${this.escapeHTML(
+              lead.industry ||
+              "Unknown"
+            )}
+          </td>
+
+          <td>
+            ${this.escapeHTML(
+              lead.city ||
+              "Unknown"
+            )}
+          </td>
+
+          <td>
+
+            <select
+              class="lead-status-select"
+              data-id="${this.escapeHTML(
+                lead.id
+              )}"
+            >
+
+              ${this.statusOption(
+                "new",
+                "New",
+                lead.status
+              )}
+
+              ${this.statusOption(
+                "qualified",
+                "Qualified",
+                lead.status
+              )}
+
+              ${this.statusOption(
+                "interested",
+                "Interested",
+                lead.status
+              )}
+
+              ${this.statusOption(
+                "negotiating",
+                "Negotiating",
+                lead.status
+              )}
+
+              ${this.statusOption(
+                "payment",
+                "Payment Pending",
+                lead.status
+              )}
+
+            </select>
+
+          </td>
+
+          <td>
+            <strong>
+              ${Number(
+                lead.score || 0
+              )}
+            </strong>
+            / 100
+          </td>
+
+          <td>
+
+            <button
+              type="button"
+              class="secondary-button lead-delete"
+              data-id="${this.escapeHTML(
+                lead.id
+              )}"
+            >
+              Remove
+            </button>
+
+          </td>
+
+        `;
+
+
+        body.appendChild(
+          row
+        );
+
       }
     );
 
 
-  tableBody.innerHTML = "";
+    this.setupLeadRowActions();
+
+  },
 
 
-  if (
-    filteredLeads.length === 0
+  statusOption(
+    value,
+    label,
+    current
   ) {
-    emptyState.style.display =
-      "flex";
 
-    return;
-  }
+    return `
+      <option
+        value="${value}"
+        ${current === value ? "selected" : ""}
+      >
+        ${label}
+      </option>
+    `;
 
-
-  emptyState.style.display =
-    "none";
-
-
-  filteredLeads.forEach(
-    (lead) => {
-
-      const row =
-        document.createElement(
-          "tr"
-        );
+  },
 
 
-      row.innerHTML = `
-        <td class="company-cell">
-          ${escapeHtml(
-            lead.company
-          )}
-        </td>
+  /* =======================================================
+     LEAD ROW ACTIONS
+  ======================================================= */
 
-        <td>
-          ${escapeHtml(
-            lead.industry
-          )}
-        </td>
+  setupLeadRowActions() {
 
-        <td>
-          ${escapeHtml(
-            lead.city
-          )}
-        </td>
+    document.querySelectorAll(
+      ".lead-status-select"
+    ).forEach(
+      (select) => {
 
-        <td>
-          <span class="status ${getStatusClass(
-            lead.status
-          )}">
-            ${getStatusLabel(
-              lead.status
-            )}
-          </span>
-        </td>
-
-        <td class="score">
-          ${lead.score}
-        </td>
-
-        <td>
-          <button
-            class="table-action"
-            data-lead-id="${lead.id}"
-          >
-            View
-          </button>
-        </td>
-      `;
-
-
-      const viewButton =
-        row.querySelector(
-          ".table-action"
-        );
-
-
-      if (viewButton) {
-        viewButton.addEventListener(
-          "click",
+        select.addEventListener(
+          "change",
           () => {
-            viewLead(
-              lead.id
+
+            this.updateLeadStatus(
+              select.dataset.id,
+              select.value
             );
+
           }
         );
+
       }
-
-
-      tableBody.appendChild(
-        row
-      );
-    }
-  );
-}
-
-
-/* =========================
-   SEARCH
-========================= */
-
-function setupLeadSearch() {
-  const input =
-    document.getElementById(
-      "lead-search"
-    );
-
-  if (!input) {
-    return;
-  }
-
-  input.addEventListener(
-    "input",
-    renderLeads
-  );
-}
-
-
-/* =========================
-   FILTER
-========================= */
-
-function setupLeadFilter() {
-  const select =
-    document.getElementById(
-      "lead-filter"
-    );
-
-  if (!select) {
-    return;
-  }
-
-  select.addEventListener(
-    "change",
-    renderLeads
-  );
-}
-
-
-/* =========================
-   VIEW LEAD
-========================= */
-
-function viewLead(leadId) {
-  const lead =
-    appState.leads.find(
-      (item) =>
-        item.id === leadId
-    );
-
-  if (!lead) {
-    return;
-  }
-
-
-  const message = [
-    `Company: ${lead.company}`,
-    `Industry: ${lead.industry}`,
-    `City: ${lead.city}`,
-    `Email: ${
-      lead.email ||
-      "Not provided"
-    }`,
-    `Website: ${
-      lead.website ||
-      "Not provided"
-    }`,
-    `Status: ${getStatusLabel(
-      lead.status
-    )}`,
-    `Score: ${lead.score}`,
-  ].join("\n");
-
-
-  alert(message);
-}
-
-
-/* =========================
-   ACTIVITY
-========================= */
-
-function addActivity(
-  title,
-  description
-) {
-  const container =
-    document.getElementById(
-      "recent-activity"
-    );
-
-  if (!container) {
-    return;
-  }
-
-
-  const emptyState =
-    container.querySelector(
-      ".empty-state"
     );
 
 
-  if (emptyState) {
-    emptyState.remove();
-  }
+    document.querySelectorAll(
+      ".lead-delete"
+    ).forEach(
+      (button) => {
 
+        button.addEventListener(
+          "click",
+          () => {
 
-  const item =
-    document.createElement(
-      "div"
+            this.removeLead(
+              button.dataset.id
+            );
+
+          }
+        );
+
+      }
     );
 
-
-  item.className =
-    "activity-item";
+  },
 
 
-  item.innerHTML = `
-    <div class="activity-icon">
-      AI
-    </div>
-
-    <div class="activity-text">
-      <strong>
-        ${escapeHtml(title)}
-      </strong>
-
-      <p>
-        ${escapeHtml(
-          description
-        )}
-      </p>
-    </div>
-
-    <div class="time">
-      Now
-    </div>
-  `;
-
-
-  container.prepend(item);
-}
-
-
-/* =========================
-   STATUS
-========================= */
-
-function getStatusLabel(status) {
-  const labels = {
-    new: "New",
-    qualified: "Qualified",
-    interested: "Interested",
-    negotiating: "Negotiating",
-    payment: "Payment Pending",
-  };
-
-  return (
-    labels[status] ||
-    "Unknown"
-  );
-}
-
-
-function getStatusClass(status) {
-  const classes = {
-    new: "status-new",
-    qualified:
-      "status-qualified",
-    interested:
-      "status-interested",
-    negotiating:
-      "status-negotiating",
-    payment:
-      "status-payment",
-  };
-
-  return (
-    classes[status] ||
-    "status-new"
-  );
-}
-
-
-/* =========================
-   HELPERS
-========================= */
-
-function updateElement(
-  id,
-  value
-) {
-  const element =
-    document.getElementById(id);
-
-  if (element) {
-    element.textContent =
-      value;
-  }
-}
-
-
-function generateId() {
-  if (
-    typeof crypto !==
-      "undefined" &&
-    crypto.randomUUID
+  updateLeadStatus(
+    id,
+    status
   ) {
-    return crypto.randomUUID();
+
+    const lead =
+      this.state.leads.find(
+        (item) =>
+          String(item.id) ===
+          String(id)
+      );
+
+
+    if (!lead) {
+      return;
+    }
+
+
+    lead.status =
+      status;
+
+
+    lead.updatedAt =
+      new Date().toISOString();
+
+
+    this.saveLeads();
+
+    this.renderLeads();
+
+    this.updateDashboard();
+
+  },
+
+
+  removeLead(id) {
+
+    const lead =
+      this.state.leads.find(
+        (item) =>
+          String(item.id) ===
+          String(id)
+      );
+
+
+    if (!lead) {
+      return;
+    }
+
+
+    const confirmed =
+      confirm(
+        `Remove ${lead.name || lead.company} from Leads?`
+      );
+
+
+    if (!confirmed) {
+      return;
+    }
+
+
+    this.state.leads =
+      this.state.leads.filter(
+        (item) =>
+          String(item.id) !==
+          String(id)
+      );
+
+
+    this.saveLeads();
+
+    this.renderLeads();
+
+    this.updateDashboard();
+
+  },
+
+
+  /* =======================================================
+     DASHBOARD
+  ======================================================= */
+
+  updateDashboard() {
+
+    const leads =
+      this.state.leads;
+
+
+    this.setText(
+      "total-leads",
+      leads.length
+    );
+
+
+    this.setText(
+      "active-conversations",
+      leads.filter(
+        (lead) =>
+          [
+            "interested",
+            "negotiating",
+            "payment"
+          ].includes(
+            lead.status
+          )
+      ).length
+    );
+
+
+    this.setText(
+      "interested-leads",
+      leads.filter(
+        (lead) =>
+          lead.status ===
+          "interested"
+      ).length
+    );
+
+
+    this.setText(
+      "total-deals",
+      leads.filter(
+        (lead) =>
+          lead.status ===
+          "negotiating"
+      ).length
+    );
+
+
+    this.setText(
+      "pipeline-new",
+      leads.filter(
+        (lead) =>
+          lead.status ===
+          "new"
+      ).length
+    );
+
+
+    this.setText(
+      "pipeline-qualified",
+      leads.filter(
+        (lead) =>
+          lead.status ===
+          "qualified"
+      ).length
+    );
+
+
+    this.setText(
+      "pipeline-interested",
+      leads.filter(
+        (lead) =>
+          lead.status ===
+          "interested"
+      ).length
+    );
+
+
+    this.setText(
+      "pipeline-negotiating",
+      leads.filter(
+        (lead) =>
+          lead.status ===
+          "negotiating"
+      ).length
+    );
+
+
+    this.setText(
+      "pipeline-payment",
+      leads.filter(
+        (lead) =>
+          lead.status ===
+          "payment"
+      ).length
+    );
+
+
+    this.renderRecentActivity();
+
+  },
+
+
+  /* =======================================================
+     RECENT ACTIVITY
+  ======================================================= */
+
+  renderRecentActivity() {
+
+    const container =
+      document.getElementById(
+        "recent-activity"
+      );
+
+
+    if (!container) {
+      return;
+    }
+
+
+    const recent =
+      [...this.state.leads]
+        .sort(
+          (a, b) =>
+            new Date(
+              b.addedAt || 0
+            ) -
+            new Date(
+              a.addedAt || 0
+            )
+        )
+        .slice(0, 5);
+
+
+    if (!recent.length) {
+
+      container.innerHTML = `
+
+        <div class="empty-state">
+
+          <div class="empty-icon">
+            AI
+          </div>
+
+          <strong>
+            No activity yet
+          </strong>
+
+          <p>
+            Your latest agency activity will appear here.
+          </p>
+
+        </div>
+
+      `;
+
+      return;
+
+    }
+
+
+    container.innerHTML =
+      recent.map(
+        (lead) => `
+
+          <div
+            style="
+              display:flex;
+              justify-content:space-between;
+              align-items:center;
+              gap:15px;
+              padding:12px 0;
+              border-bottom:1px solid rgba(255,255,255,.05);
+            "
+          >
+
+            <div>
+
+              <strong>
+                ${this.escapeHTML(
+                  lead.name ||
+                  lead.company ||
+                  "Unknown"
+                )}
+              </strong>
+
+              <div
+                style="
+                  color:#888;
+                  font-size:11px;
+                  margin-top:4px;
+                "
+              >
+                Added from
+                ${this.escapeHTML(
+                  lead.source ||
+                  "Unknown"
+                )}
+              </div>
+
+            </div>
+
+
+            <span
+              style="
+                font-size:11px;
+                color:#999;
+              "
+            >
+              ${this.escapeHTML(
+                this.formatStatus(
+                  lead.status
+                )
+              )}
+            </span>
+
+          </div>
+
+        `
+      )
+      .join("");
+
+  },
+
+
+  /* =======================================================
+     HELPERS
+  ======================================================= */
+
+  formatStatus(status) {
+
+    const labels = {
+
+      new: "New",
+
+      qualified: "Qualified",
+
+      interested: "Interested",
+
+      negotiating: "Negotiating",
+
+      payment: "Payment Pending"
+
+    };
+
+
+    return (
+      labels[status] ||
+      "New"
+    );
+
+  },
+
+
+  normalize(value) {
+
+    return String(
+      value || ""
+    )
+      .toLowerCase()
+      .trim();
+
+  },
+
+
+  setText(
+    id,
+    value
+  ) {
+
+    const element =
+      document.getElementById(
+        id
+      );
+
+
+    if (element) {
+      element.textContent =
+        value;
+    }
+
+  },
+
+
+  escapeHTML(value) {
+
+    return String(
+      value || ""
+    )
+      .replaceAll(
+        "&",
+        "&amp;"
+      )
+      .replaceAll(
+        "<",
+        "&lt;"
+      )
+      .replaceAll(
+        ">",
+        "&gt;"
+      )
+      .replaceAll(
+        '"',
+        "&quot;"
+      )
+      .replaceAll(
+        "'",
+        "&#039;"
+      );
+
   }
 
-  return (
-    Date.now().toString(36) +
-    Math.random()
-      .toString(36)
-      .substring(2)
-  );
-}
+};
 
 
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll(
-      "&",
-      "&amp;"
-    )
-    .replaceAll(
-      "<",
-      "&lt;"
-    )
-    .replaceAll(
-      ">",
-      "&gt;"
-    )
-    .replaceAll(
-      '"',
-      "&quot;"
-    )
-    .replaceAll(
-      "'",
-      "&#039;"
+/* =========================================================
+   GLOBAL ACCESS
+========================================================= */
+
+window.App = App;
+
+
+/* =========================================================
+   CONNECT DISCOVERY → LEADS
+========================================================= */
+
+window.addDiscoveredLead =
+  function (business) {
+
+    App.addDiscoveredLead(
+      business
     );
-}
+
+  };
+
+
+/* =========================================================
+   START APP
+========================================================= */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
+    App.init();
+
+  }
+);
