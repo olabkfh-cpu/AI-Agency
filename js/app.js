@@ -1,5 +1,7 @@
+```javascript
 /* =========================================================
    AI AGENCY — APP.JS
+   Core CRM
    Leads + Dashboard + Navigation + Local Storage
 ========================================================= */
 
@@ -33,6 +35,10 @@ const App = {
 
     this.updateDashboard();
 
+    this.updatePageHeader(
+      this.state.currentPage
+    );
+
   },
 
 
@@ -47,19 +53,22 @@ const App = {
       const saved =
         localStorage.getItem(STORAGE_KEY);
 
-      this.state.leads =
-        saved
-          ? JSON.parse(saved)
-          : [];
-
-      if (!Array.isArray(this.state.leads)) {
+      if (!saved) {
         this.state.leads = [];
+        return;
       }
+
+      const parsed = JSON.parse(saved);
+
+      this.state.leads =
+        Array.isArray(parsed)
+          ? parsed
+          : [];
 
     } catch (error) {
 
       console.error(
-        "Could not load leads:",
+        "Failed to load leads:",
         error
       );
 
@@ -72,10 +81,23 @@ const App = {
 
   saveLeads() {
 
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(this.state.leads)
-    );
+    try {
+
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(
+          this.state.leads
+        )
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Failed to save leads:",
+        error
+      );
+
+    }
 
   },
 
@@ -86,72 +108,69 @@ const App = {
 
   setupNavigation() {
 
-    const links =
-      document.querySelectorAll(
-        ".nav-link"
-      );
+    document
+      .querySelectorAll(".nav-link")
+      .forEach((link) => {
 
-    links.forEach((link) => {
+        link.addEventListener(
+          "click",
+          (event) => {
 
-      link.addEventListener(
-        "click",
-        (event) => {
+            event.preventDefault();
 
-          event.preventDefault();
+            const page =
+              link.dataset.page;
 
-          const page =
-            link.dataset.page;
+            if (page) {
+              this.showPage(page);
+            }
 
-          if (page) {
-            this.showPage(page);
           }
+        );
 
-        }
-      );
-
-    });
+      });
 
   },
 
 
   setupPageLinks() {
 
-    document.querySelectorAll(
-      "[data-page-link]"
-    ).forEach((link) => {
+    document
+      .querySelectorAll("[data-page-link]")
+      .forEach((link) => {
 
-      link.addEventListener(
-        "click",
-        (event) => {
+        link.addEventListener(
+          "click",
+          (event) => {
 
-          event.preventDefault();
+            event.preventDefault();
 
-          this.showPage(
-            link.dataset.pageLink
-          );
+            const page =
+              link.dataset.pageLink;
 
-        }
-      );
+            if (page) {
+              this.showPage(page);
+            }
 
-    });
+          }
+        );
+
+      });
 
   },
 
 
   showPage(page) {
 
-    const pages =
-      document.querySelectorAll(
-        ".page"
-      );
+    document
+      .querySelectorAll(".page")
+      .forEach((section) => {
 
-    pages.forEach((section) => {
+        section.classList.remove(
+          "active-page"
+        );
 
-      section.classList.remove(
-        "active-page"
-      );
-
-    });
+      });
 
 
     const target =
@@ -159,59 +178,49 @@ const App = {
         `${page}-page`
       );
 
-    if (target) {
 
-      target.classList.add(
-        "active-page"
-      );
-
+    if (!target) {
+      return;
     }
 
 
-    document.querySelectorAll(
-      ".nav-link"
-    ).forEach((link) => {
+    target.classList.add(
+      "active-page"
+    );
 
-      link.classList.toggle(
-        "active",
-        link.dataset.page === page
-      );
 
-    });
+    document
+      .querySelectorAll(".nav-link")
+      .forEach((link) => {
+
+        link.classList.toggle(
+          "active",
+          link.dataset.page === page
+        );
+
+      });
 
 
     this.state.currentPage =
       page;
 
 
-    this.updatePageHeader(
-      page
-    );
+    this.updatePageHeader(page);
+
+
+    if (page === "dashboard") {
+      this.updateDashboard();
+    }
 
 
     if (page === "leads") {
       this.renderLeads();
     }
 
-    if (page === "dashboard") {
-      this.updateDashboard();
-    }
-
   },
 
 
   updatePageHeader(page) {
-
-    const title =
-      document.getElementById(
-        "page-title"
-      );
-
-    const subtitle =
-      document.getElementById(
-        "page-subtitle"
-      );
-
 
     const headers = {
 
@@ -273,16 +282,16 @@ const App = {
       headers.dashboard;
 
 
-    if (title) {
-      title.textContent =
-        data[0];
-    }
+    this.setText(
+      "page-title",
+      data[0]
+    );
 
 
-    if (subtitle) {
-      subtitle.textContent =
-        data[1];
-    }
+    this.setText(
+      "page-subtitle",
+      data[1]
+    );
 
   },
 
@@ -319,6 +328,17 @@ const App = {
       );
 
 
+    const closeModal = () => {
+
+      if (modal) {
+        modal.classList.remove(
+          "show"
+        );
+      }
+
+    };
+
+
     if (openButton) {
 
       openButton.addEventListener(
@@ -335,19 +355,6 @@ const App = {
       );
 
     }
-
-
-    const closeModal = () => {
-
-      if (modal) {
-
-        modal.classList.remove(
-          "show"
-        );
-
-      }
-
-    };
 
 
     if (closeButton) {
@@ -392,13 +399,16 @@ const App = {
 
           event.preventDefault();
 
-          this.addManualLead(
-            form
-          );
+          const added =
+            this.addManualLead(form);
 
-          form.reset();
+          if (added) {
 
-          closeModal();
+            form.reset();
+
+            closeModal();
+
+          }
 
         }
       );
@@ -409,7 +419,7 @@ const App = {
 
 
   /* =======================================================
-     ADD MANUAL LEAD
+     MANUAL LEAD
   ======================================================= */
 
   addManualLead(form) {
@@ -418,251 +428,116 @@ const App = {
       new FormData(form);
 
 
-    const company =
-      String(
-        data.get("company") || ""
-      ).trim();
-
-
-    const industry =
-      String(
-        data.get("industry") || ""
-      ).trim();
-
-
-    const city =
-      String(
-        data.get("city") || ""
-      ).trim();
-
-
-    const email =
-      String(
-        data.get("email") || ""
-      ).trim();
-
-
-    const website =
-      String(
-        data.get("website") || ""
-      ).trim();
-
-
-    if (!company) {
-      return;
-    }
-
-
-    const exists =
-      this.state.leads.some(
-        (lead) =>
-          this.normalize(
-            lead.name || lead.company
-          ) ===
-          this.normalize(company)
-      );
-
-
-    if (exists) {
-
-      alert(
-        "This company is already in Leads."
-      );
-
-      return;
-
-    }
-
-
     const lead = {
 
       id:
-        `manual-${Date.now()}`,
+        this.createId("manual"),
 
       name:
-        company,
+        this.clean(
+          data.get("company")
+        ),
 
       company:
-        company,
+        this.clean(
+          data.get("company")
+        ),
 
       industry:
-        industry || "Unknown",
+        this.clean(
+          data.get("industry")
+        ) || "Unknown",
 
       city:
-        city || "Unknown",
-
-      email:
-        email,
-
-      website:
-        website,
-
-      instagram:
-        "",
-
-      phone:
-        "",
-
-      status:
-        "new",
-
-      score:
-        this.calculateLeadScore({
-          website,
-          email,
-          phone: "",
-          instagram: "",
-          address: city
-        }),
-
-      source:
-        "Manual",
-
-      addedAt:
-        new Date().toISOString()
-
-    };
-
-
-    this.state.leads.unshift(
-      lead
-    );
-
-
-    this.saveLeads();
-
-    this.renderLeads();
-
-    this.updateDashboard();
-
-  },
-
-
-  /* =======================================================
-     ADD DISCOVERED BUSINESS
-  ======================================================= */
-
-  addDiscoveredLead(business) {
-
-    if (!business) {
-      return;
-    }
-
-
-    const companyName =
-      business.name ||
-      business.company ||
-      "Unknown company";
-
-
-    const exists =
-      this.state.leads.some(
-        (lead) =>
-          this.normalize(
-            lead.name ||
-            lead.company
-          ) ===
-          this.normalize(
-            companyName
-          )
-      );
-
-
-    if (exists) {
-
-      alert(
-        `${companyName} is already in Leads.`
-      );
-
-      return;
-
-    }
-
-
-    const analysis =
-      business.analysis || {};
-
-
-    const lead = {
-
-      id:
-        business.id ||
-        `discovered-${Date.now()}`,
-
-      name:
-        companyName,
-
-      company:
-        companyName,
-
-      industry:
-        business.industry ||
-        "Restaurant",
-
-      city:
-        business.city ||
-        "",
+        this.clean(
+          data.get("city")
+        ) || "Unknown",
 
       address:
-        business.address ||
-        "",
-
-      phone:
-        business.phone ||
-        "",
-
-      website:
-        business.website ||
-        "",
-
-      instagram:
-        business.instagram ||
         "",
 
       email:
-        business.email ||
+        this.clean(
+          data.get("email")
+        ),
+
+      phone:
+        "",
+
+      website:
+        this.clean(
+          data.get("website")
+        ),
+
+      instagram:
         "",
 
       latitude:
-        business.latitude ||
         null,
 
       longitude:
-        business.longitude ||
         null,
 
       mapUrl:
-        business.mapUrl ||
         "",
 
       score:
-        analysis.score ||
-        this.calculateLeadScore(
-          business
-        ),
+        0,
 
       priority:
-        analysis.priority ||
         "Medium",
 
       recommendedService:
-        analysis.service ||
         "Professional Website",
 
       opportunities:
-        analysis.opportunities ||
         [],
 
       status:
         "new",
 
       source:
-        "Discovery",
+        "Manual",
 
       addedAt:
+        new Date().toISOString(),
+
+      updatedAt:
         new Date().toISOString()
 
     };
+
+
+    if (!lead.name) {
+      return false;
+    }
+
+
+    if (
+      this.isDuplicate(
+        lead.name
+      )
+    ) {
+
+      alert(
+        "This company is already in Leads."
+      );
+
+      return false;
+
+    }
+
+
+    lead.score =
+      this.calculateLeadScore(
+        lead
+      );
+
+
+    lead.priority =
+      this.getPriority(
+        lead.score
+      );
 
 
     this.state.leads.unshift(
@@ -678,7 +553,208 @@ const App = {
 
 
     alert(
-      `${companyName} added to Leads.`
+      `${lead.name} added to Leads.`
+    );
+
+
+    return true;
+
+  },
+
+
+  /* =======================================================
+     DISCOVERY → LEADS
+  ======================================================= */
+
+  addDiscoveredLead(business) {
+
+    if (!business) {
+      return false;
+    }
+
+
+    const name =
+      this.clean(
+        business.name ||
+        business.company
+      );
+
+
+    if (!name) {
+      return false;
+    }
+
+
+    if (
+      this.isDuplicate(name)
+    ) {
+
+      alert(
+        `${name} is already in Leads.`
+      );
+
+      return false;
+
+    }
+
+
+    const analysis =
+      business.analysis || {};
+
+
+    const lead = {
+
+      id:
+        business.id ||
+        this.createId("discovery"),
+
+      name:
+        name,
+
+      company:
+        name,
+
+      industry:
+        this.clean(
+          business.industry
+        ) || "Restaurant",
+
+      city:
+        this.clean(
+          business.city
+        ) || "",
+
+      address:
+        this.clean(
+          business.address
+        ) || "",
+
+      email:
+        this.clean(
+          business.email
+        ) || "",
+
+      phone:
+        this.clean(
+          business.phone
+        ) || "",
+
+      website:
+        this.clean(
+          business.website
+        ) || "",
+
+      instagram:
+        this.clean(
+          business.instagram
+        ) || "",
+
+      latitude:
+        business.latitude ??
+        null,
+
+      longitude:
+        business.longitude ??
+        null,
+
+      mapUrl:
+        business.mapUrl ||
+        "",
+
+      score:
+        Number(
+          analysis.score
+        ) ||
+        this.calculateLeadScore(
+          business
+        ),
+
+      priority:
+        analysis.priority ||
+        "Medium",
+
+      recommendedService:
+        analysis.service ||
+        "Professional Website",
+
+      opportunities:
+        Array.isArray(
+          analysis.opportunities
+        )
+          ? analysis.opportunities
+          : this.buildOpportunities(
+              business
+            ),
+
+      status:
+        "new",
+
+      source:
+        "Discovery",
+
+      addedAt:
+        new Date().toISOString(),
+
+      updatedAt:
+        new Date().toISOString()
+
+    };
+
+
+    lead.priority =
+      this.getPriority(
+        lead.score
+      );
+
+
+    this.state.leads.unshift(
+      lead
+    );
+
+
+    this.saveLeads();
+
+    this.renderLeads();
+
+    this.updateDashboard();
+
+
+    alert(
+      `${name} added to Leads.`
+    );
+
+
+    return true;
+
+  },
+
+
+  /* =======================================================
+     DUPLICATE CHECK
+  ======================================================= */
+
+  isDuplicate(name) {
+
+    const normalized =
+      this.normalize(name);
+
+
+    return this.state.leads.some(
+      (lead) => {
+
+        const leadName =
+          this.normalize(
+            lead.name ||
+            lead.company ||
+            ""
+          );
+
+
+        return (
+          leadName === normalized
+        );
+
+      }
     );
 
   },
@@ -727,6 +803,61 @@ const App = {
       score,
       100
     );
+
+  },
+
+
+  getPriority(score) {
+
+    if (score >= 80) {
+      return "High";
+    }
+
+
+    if (score >= 60) {
+      return "Medium";
+    }
+
+
+    return "Low";
+
+  },
+
+
+  buildOpportunities(business) {
+
+    const opportunities = [];
+
+
+    if (!business.website) {
+      opportunities.push(
+        "No professional website detected"
+      );
+    }
+
+
+    if (!business.instagram) {
+      opportunities.push(
+        "Instagram presence not detected"
+      );
+    }
+
+
+    if (!business.phone) {
+      opportunities.push(
+        "No phone number detected"
+      );
+    }
+
+
+    if (!business.email) {
+      opportunities.push(
+        "No email detected"
+      );
+    }
+
+
+    return opportunities;
 
   },
 
@@ -785,14 +916,13 @@ const App = {
         "lead-search"
       );
 
-
     const filter =
       document.getElementById(
         "lead-filter"
       );
 
 
-    const searchValue =
+    const query =
       search
         ? this.normalize(
             search.value
@@ -800,7 +930,7 @@ const App = {
         : "";
 
 
-    const filterValue =
+    const status =
       filter
         ? filter.value
         : "all";
@@ -809,43 +939,43 @@ const App = {
     return this.state.leads.filter(
       (lead) => {
 
-        const name =
-          this.normalize(
-            lead.name ||
-            lead.company ||
-            ""
-          );
+        const searchable = [
 
+          lead.name,
 
-        const industry =
-          this.normalize(
-            lead.industry ||
-            ""
-          );
+          lead.company,
 
+          lead.industry,
 
-        const city =
-          this.normalize(
-            lead.city ||
-            ""
-          );
+          lead.city,
+
+          lead.email,
+
+          lead.phone
+
+        ]
+          .map(
+            (value) =>
+              this.normalize(value)
+          )
+          .join(" ");
 
 
         const matchesSearch =
-          !searchValue ||
-          name.includes(searchValue) ||
-          industry.includes(searchValue) ||
-          city.includes(searchValue);
+          !query ||
+          searchable.includes(
+            query
+          );
 
 
-        const matchesFilter =
-          filterValue === "all" ||
-          lead.status === filterValue;
+        const matchesStatus =
+          status === "all" ||
+          lead.status === status;
 
 
         return (
           matchesSearch &&
-          matchesFilter
+          matchesStatus
         );
 
       }
@@ -864,7 +994,6 @@ const App = {
       document.getElementById(
         "leads-table-body"
       );
-
 
     const empty =
       document.getElementById(
@@ -981,12 +1110,15 @@ const App = {
           </td>
 
           <td>
+
             <strong>
               ${Number(
                 lead.score || 0
               )}
             </strong>
+
             / 100
+
           </td>
 
           <td>
@@ -1028,7 +1160,11 @@ const App = {
     return `
       <option
         value="${value}"
-        ${current === value ? "selected" : ""}
+        ${
+          current === value
+            ? "selected"
+            : ""
+        }
       >
         ${label}
       </option>
@@ -1038,50 +1174,54 @@ const App = {
 
 
   /* =======================================================
-     LEAD ROW ACTIONS
+     ROW ACTIONS
   ======================================================= */
 
   setupLeadRowActions() {
 
-    document.querySelectorAll(
-      ".lead-status-select"
-    ).forEach(
-      (select) => {
+    document
+      .querySelectorAll(
+        ".lead-status-select"
+      )
+      .forEach(
+        (select) => {
 
-        select.addEventListener(
-          "change",
-          () => {
+          select.addEventListener(
+            "change",
+            () => {
 
-            this.updateLeadStatus(
-              select.dataset.id,
-              select.value
-            );
+              this.updateLeadStatus(
+                select.dataset.id,
+                select.value
+              );
 
-          }
-        );
+            }
+          );
 
-      }
-    );
+        }
+      );
 
 
-    document.querySelectorAll(
-      ".lead-delete"
-    ).forEach(
-      (button) => {
+    document
+      .querySelectorAll(
+        ".lead-delete"
+      )
+      .forEach(
+        (button) => {
 
-        button.addEventListener(
-          "click",
-          () => {
+          button.addEventListener(
+            "click",
+            () => {
 
-            this.removeLead(
-              button.dataset.id
-            );
+              this.removeLead(
+                button.dataset.id
+              );
 
-          }
-        );
+            }
+          );
 
-      }
-    );
+        }
+      );
 
   },
 
@@ -1136,13 +1276,17 @@ const App = {
     }
 
 
-    const confirmed =
-      confirm(
-        `Remove ${lead.name || lead.company} from Leads?`
-      );
+    const name =
+      lead.name ||
+      lead.company ||
+      "this lead";
 
 
-    if (!confirmed) {
+    if (
+      !confirm(
+        `Remove ${name} from Leads?`
+      )
+    ) {
       return;
     }
 
@@ -1217,55 +1361,45 @@ const App = {
 
     this.setText(
       "pipeline-new",
-      leads.filter(
-        (lead) =>
-          lead.status ===
-          "new"
-      ).length
+      this.countStatus("new")
     );
 
 
     this.setText(
       "pipeline-qualified",
-      leads.filter(
-        (lead) =>
-          lead.status ===
-          "qualified"
-      ).length
+      this.countStatus("qualified")
     );
 
 
     this.setText(
       "pipeline-interested",
-      leads.filter(
-        (lead) =>
-          lead.status ===
-          "interested"
-      ).length
+      this.countStatus("interested")
     );
 
 
     this.setText(
       "pipeline-negotiating",
-      leads.filter(
-        (lead) =>
-          lead.status ===
-          "negotiating"
-      ).length
+      this.countStatus("negotiating")
     );
 
 
     this.setText(
       "pipeline-payment",
-      leads.filter(
-        (lead) =>
-          lead.status ===
-          "payment"
-      ).length
+      this.countStatus("payment")
     );
 
 
     this.renderRecentActivity();
+
+  },
+
+
+  countStatus(status) {
+
+    return this.state.leads.filter(
+      (lead) =>
+        lead.status === status
+    ).length;
 
   },
 
@@ -1292,10 +1426,14 @@ const App = {
         .sort(
           (a, b) =>
             new Date(
-              b.addedAt || 0
+              b.updatedAt ||
+              b.addedAt ||
+              0
             ) -
             new Date(
-              a.addedAt || 0
+              a.updatedAt ||
+              a.addedAt ||
+              0
             )
         )
         .slice(0, 5);
@@ -1329,65 +1467,65 @@ const App = {
 
 
     container.innerHTML =
-      recent.map(
-        (lead) => `
+      recent
+        .map(
+          (lead) => `
 
-          <div
-            style="
-              display:flex;
-              justify-content:space-between;
-              align-items:center;
-              gap:15px;
-              padding:12px 0;
-              border-bottom:1px solid rgba(255,255,255,.05);
-            "
-          >
+            <div
+              style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                gap:15px;
+                padding:12px 0;
+                border-bottom:1px solid rgba(255,255,255,.05);
+              "
+            >
 
-            <div>
+              <div>
 
-              <strong>
-                ${this.escapeHTML(
-                  lead.name ||
-                  lead.company ||
-                  "Unknown"
-                )}
-              </strong>
+                <strong>
+                  ${this.escapeHTML(
+                    lead.name ||
+                    lead.company ||
+                    "Unknown"
+                  )}
+                </strong>
 
-              <div
+                <div
+                  style="
+                    color:#888;
+                    font-size:11px;
+                    margin-top:4px;
+                  "
+                >
+                  ${this.escapeHTML(
+                    lead.source ||
+                    "Unknown"
+                  )}
+                </div>
+
+              </div>
+
+
+              <span
                 style="
-                  color:#888;
                   font-size:11px;
-                  margin-top:4px;
+                  color:#999;
                 "
               >
-                Added from
                 ${this.escapeHTML(
-                  lead.source ||
-                  "Unknown"
+                  this.formatStatus(
+                    lead.status
+                  )
                 )}
-              </div>
+              </span>
 
             </div>
 
-
-            <span
-              style="
-                font-size:11px;
-                color:#999;
-              "
-            >
-              ${this.escapeHTML(
-                this.formatStatus(
-                  lead.status
-                )
-              )}
-            </span>
-
-          </div>
-
-        `
-      )
-      .join("");
+          `
+        )
+        .join("");
 
   },
 
@@ -1396,27 +1534,20 @@ const App = {
      HELPERS
   ======================================================= */
 
-  formatStatus(status) {
+  createId(prefix) {
 
-    const labels = {
+    return `${prefix}-${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2, 8)}`;
 
-      new: "New",
-
-      qualified: "Qualified",
-
-      interested: "Interested",
-
-      negotiating: "Negotiating",
-
-      payment: "Payment Pending"
-
-    };
+  },
 
 
-    return (
-      labels[status] ||
-      "New"
-    );
+  clean(value) {
+
+    return String(
+      value || ""
+    ).trim();
 
   },
 
@@ -1428,6 +1559,36 @@ const App = {
     )
       .toLowerCase()
       .trim();
+
+  },
+
+
+  formatStatus(status) {
+
+    const labels = {
+
+      new:
+        "New",
+
+      qualified:
+        "Qualified",
+
+      interested:
+        "Interested",
+
+      negotiating:
+        "Negotiating",
+
+      payment:
+        "Payment Pending"
+
+    };
+
+
+    return (
+      labels[status] ||
+      "New"
+    );
 
   },
 
@@ -1490,13 +1651,13 @@ window.App = App;
 
 
 /* =========================================================
-   CONNECT DISCOVERY → LEADS
+   DISCOVERY → LEADS
 ========================================================= */
 
 window.addDiscoveredLead =
   function (business) {
 
-    App.addDiscoveredLead(
+    return App.addDiscoveredLead(
       business
     );
 
@@ -1515,3 +1676,4 @@ document.addEventListener(
 
   }
 );
+```
