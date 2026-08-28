@@ -2,27 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Agency</title>
 
-  <link
-    rel="stylesheet"
-    href="css/style.css"
-  >
+  <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
   <div class="app">
 
-    <!-- =========================
-         SIDEBAR
-    ========================== -->
-
+    <!-- SIDEBAR -->
     <aside class="sidebar">
 
       <div class="logo">
@@ -35,83 +25,43 @@
 
       <nav class="nav">
 
-        <a
-          href="#"
-          class="nav-link active"
-          data-page="dashboard"
-        >
+        <a href="#" class="nav-link active" data-page="dashboard">
           Dashboard
         </a>
 
-        <a
-          href="#"
-          class="nav-link"
-          data-page="discovery"
-        >
+        <a href="#" class="nav-link" data-page="discovery">
           Discovery
         </a>
 
-        <a
-          href="#"
-          class="nav-link"
-          data-page="leads"
-        >
+        <a href="#" class="nav-link" data-page="leads">
           Leads
         </a>
 
-        <a
-          href="#"
-          class="nav-link"
-          data-page="companies"
-        >
+        <a href="#" class="nav-link" data-page="companies">
           Companies
         </a>
 
-        <a
-          href="#"
-          class="nav-link"
-          data-page="outreach"
-        >
+        <a href="#" class="nav-link" data-page="outreach">
           Outreach
         </a>
 
-        <a
-          href="#"
-          class="nav-link"
-          data-page="conversations"
-        >
+        <a href="#" class="nav-link" data-page="conversations">
           Conversations
         </a>
 
-        <a
-          href="#"
-          class="nav-link"
-          data-page="deals"
-        >
+        <a href="#" class="nav-link" data-page="deals">
           Deals
         </a>
 
-        <a
-          href="#"
-          class="nav-link"
-          data-page="payments"
-        >
+        <a href="#" class="nav-link" data-page="payments">
           Payments
         </a>
 
-        <a
-          href="#"
-          class="nav-link"
-          data-page="services"
-        >
+        <a href="#" class="nav-link" data-page="services">
           Services
         </a>
 
-        <a
-          href="#"
-          class="nav-link"
-          data-page="settings"
-        >
+        <a href="#" class="nav-link" data-page="settings">
           Settings
         </a>
 
@@ -120,14 +70,10 @@
     </aside>
 
 
-    <!-- =========================
-         MAIN
-    ========================== -->
-
+    <!-- MAIN -->
     <main class="main">
 
       <!-- TOPBAR -->
-
       <header class="topbar">
 
         <div class="welcome">
@@ -153,86 +99,58 @@
       </header>
 
 
-      <!-- =========================
-           DASHBOARD PAGE
-      ========================== -->
-
-      <section
-        id="dashboard-page"
-        class="page active-page"
-      >
+      <!-- DASHBOARD -->
+      <section id="dashboard-page" class="page active-page">
 
         <div class="stats">
 
           <div class="card">
-
             <div class="stat-label">
               Total Leads
             </div>
 
-            <div
-              class="stat-number"
-              id="total-leads"
-            >
+            <div class="stat-number" id="total-leads">
               0
             </div>
-
           </div>
 
 
           <div class="card">
-
             <div class="stat-label">
               Active Conversations
             </div>
 
-            <div
-              class="stat-number"
-              id="active-conversations"
-            >
+            <div class="stat-number" id="active-conversations">
               0
             </div>
-
           </div>
 
 
           <div class="card">
-
             <div class="stat-label">
               Interested Leads
             </div>
 
-            <div
-              class="stat-number"
-              id="interested-leads"
-            >
+            <div class="stat-number" id="interested-leads">
               0
             </div>
-
           </div>
 
 
           <div class="card">
-
             <div class="stat-label">
               Total Deals
             </div>
 
-            <div
-              class="stat-number"
-              id="total-deals"
-            >
+            <div class="stat-number" id="total-deals">
               0
             </div>
-
           </div>
 
         </div>
 
 
         <div class="content-grid">
-
-          <!-- RECENT ACTIVITY -->
 
           <div class="card">
 
@@ -242,19 +160,13 @@
                 Recent Activity
               </h2>
 
-              <a
-                href="#"
-                data-page-link="leads"
-              >
+              <a href="#" data-page-link="leads">
                 View leads
               </a>
 
             </div>
 
-            <div
-              class="activity"
-              id="recent-activity"
-            >
+            <div class="activity" id="recent-activity">
 
               <div class="empty-state">
 
@@ -277,8 +189,6 @@
           </div>
 
 
-          <!-- PIPELINE -->
-
           <div class="card">
 
             <div class="section-header">
@@ -293,82 +203,28 @@
             <div class="pipeline">
 
               <div class="pipeline-row">
-
-                <span>
-                  New
-                </span>
-
-                <span
-                  class="pipeline-number"
-                  id="pipeline-new"
-                >
-                  0
-                </span>
-
+                <span>New</span>
+                <span class="pipeline-number" id="pipeline-new">0</span>
               </div>
 
-
               <div class="pipeline-row">
-
-                <span>
-                  Qualified
-                </span>
-
-                <span
-                  class="pipeline-number"
-                  id="pipeline-qualified"
-                >
-                  0
-                </span>
-
+                <span>Qualified</span>
+                <span class="pipeline-number" id="pipeline-qualified">0</span>
               </div>
 
-
               <div class="pipeline-row">
-
-                <span>
-                  Interested
-                </span>
-
-                <span
-                  class="pipeline-number"
-                  id="pipeline-interested"
-                >
-                  0
-                </span>
-
+                <span>Interested</span>
+                <span class="pipeline-number" id="pipeline-interested">0</span>
               </div>
 
-
               <div class="pipeline-row">
-
-                <span>
-                  Negotiating
-                </span>
-
-                <span
-                  class="pipeline-number"
-                  id="pipeline-negotiating"
-                >
-                  0
-                </span>
-
+                <span>Negotiating</span>
+                <span class="pipeline-number" id="pipeline-negotiating">0</span>
               </div>
 
-
               <div class="pipeline-row">
-
-                <span>
-                  Payment Pending
-                </span>
-
-                <span
-                  class="pipeline-number"
-                  id="pipeline-payment"
-                >
-                  0
-                </span>
-
+                <span>Payment Pending</span>
+                <span class="pipeline-number" id="pipeline-payment">0</span>
               </div>
 
             </div>
@@ -380,14 +236,8 @@
       </section>
 
 
-      <!-- =========================
-           DISCOVERY PAGE
-      ========================== -->
-
-      <section
-        id="discovery-page"
-        class="page"
-      >
+      <!-- DISCOVERY -->
+      <section id="discovery-page" class="page">
 
         <div class="page-toolbar">
 
@@ -406,12 +256,7 @@
         </div>
 
 
-        <!-- DISCOVERY FORM -->
-
-        <div
-          class="card"
-          style="padding: 22px; margin-bottom: 20px;"
-        >
+        <div class="card" style="padding:22px;margin-bottom:20px;">
 
           <form id="discovery-form">
 
@@ -475,24 +320,20 @@
                   Requirements
                 </label>
 
-                <div
-                  style="
+                <div style="
+                  display:flex;
+                  align-items:center;
+                  gap:8px;
+                  min-height:40px;
+                ">
+
+                  <label style="
                     display:flex;
                     align-items:center;
-                    gap:8px;
-                    min-height:40px;
-                  "
-                >
-
-                  <label
-                    style="
-                      display:flex;
-                      align-items:center;
-                      gap:6px;
-                      color:#aaa;
-                      font-size:11px;
-                    "
-                  >
+                    gap:6px;
+                    color:#aaa;
+                    font-size:11px;
+                  ">
 
                     <input
                       type="checkbox"
@@ -505,15 +346,13 @@
                   </label>
 
 
-                  <label
-                    style="
-                      display:flex;
-                      align-items:center;
-                      gap:6px;
-                      color:#aaa;
-                      font-size:11px;
-                    "
-                  >
+                  <label style="
+                    display:flex;
+                    align-items:center;
+                    gap:6px;
+                    color:#aaa;
+                    font-size:11px;
+                  ">
 
                     <input
                       type="checkbox"
@@ -568,8 +407,6 @@
         </div>
 
 
-        <!-- DISCOVERY RESULTS -->
-
         <div class="card">
 
           <div class="section-header">
@@ -609,14 +446,8 @@
       </section>
 
 
-      <!-- =========================
-           LEADS PAGE
-      ========================== -->
-
-      <section
-        id="leads-page"
-        class="page"
-      >
+      <!-- LEADS -->
+      <section id="leads-page" class="page">
 
         <div class="page-toolbar">
 
@@ -660,29 +491,12 @@
               class="filter-select"
             >
 
-              <option value="all">
-                All statuses
-              </option>
-
-              <option value="new">
-                New
-              </option>
-
-              <option value="qualified">
-                Qualified
-              </option>
-
-              <option value="interested">
-                Interested
-              </option>
-
-              <option value="negotiating">
-                Negotiating
-              </option>
-
-              <option value="payment">
-                Payment Pending
-              </option>
+              <option value="all">All statuses</option>
+              <option value="new">New</option>
+              <option value="qualified">Qualified</option>
+              <option value="interested">Interested</option>
+              <option value="negotiating">Negotiating</option>
+              <option value="payment">Payment Pending</option>
 
             </select>
 
@@ -697,38 +511,19 @@
 
                 <tr>
 
-                  <th>
-                    Company
-                  </th>
-
-                  <th>
-                    Industry
-                  </th>
-
-                  <th>
-                    City
-                  </th>
-
-                  <th>
-                    Status
-                  </th>
-
-                  <th>
-                    Score
-                  </th>
-
-                  <th>
-                    Action
-                  </th>
+                  <th>Company</th>
+                  <th>Industry</th>
+                  <th>City</th>
+                  <th>Status</th>
+                  <th>Score</th>
+                  <th>Action</th>
 
                 </tr>
 
               </thead>
 
 
-              <tbody
-                id="leads-table-body"
-              ></tbody>
+              <tbody id="leads-table-body"></tbody>
 
             </table>
 
@@ -759,14 +554,8 @@
       </section>
 
 
-      <!-- =========================
-           OTHER PAGES
-      ========================== -->
-
-      <section
-        id="companies-page"
-        class="page"
-      >
+      <!-- COMPANIES -->
+      <section id="companies-page" class="page">
 
         <div class="placeholder-page">
 
@@ -787,10 +576,8 @@
       </section>
 
 
-      <section
-        id="outreach-page"
-        class="page"
-      >
+      <!-- OUTREACH -->
+      <section id="outreach-page" class="page">
 
         <div class="placeholder-page">
 
@@ -811,10 +598,8 @@
       </section>
 
 
-      <section
-        id="conversations-page"
-        class="page"
-      >
+      <!-- CONVERSATIONS -->
+      <section id="conversations-page" class="page">
 
         <div class="placeholder-page">
 
@@ -835,10 +620,8 @@
       </section>
 
 
-      <section
-        id="deals-page"
-        class="page"
-      >
+      <!-- DEALS -->
+      <section id="deals-page" class="page">
 
         <div class="placeholder-page">
 
@@ -859,10 +642,8 @@
       </section>
 
 
-      <section
-        id="payments-page"
-        class="page"
-      >
+      <!-- PAYMENTS -->
+      <section id="payments-page" class="page">
 
         <div class="placeholder-page">
 
@@ -883,10 +664,8 @@
       </section>
 
 
-      <section
-        id="services-page"
-        class="page"
-      >
+      <!-- SERVICES -->
+      <section id="services-page" class="page">
 
         <div class="placeholder-page">
 
@@ -907,10 +686,8 @@
       </section>
 
 
-      <section
-        id="settings-page"
-        class="page"
-      >
+      <!-- SETTINGS -->
+      <section id="settings-page" class="page">
 
         <div class="placeholder-page">
 
@@ -935,9 +712,7 @@
   </div>
 
 
-  <!-- =========================
-       ADD LEAD MODAL
-  ========================== -->
+  <!-- ADD LEAD MODAL -->
 
   <div
     id="lead-modal"
@@ -1088,12 +863,11 @@
   </div>
 
 
-  <!-- =========================
-       SCRIPTS
-  ========================== -->
+  <!-- SCRIPTS -->
 
   <script src="js/app.js"></script>
   <script src="js/discovery.js"></script>
+  <script src="js/lead-intelligence.js"></script>
 
 </body>
 </html>
