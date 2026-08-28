@@ -35,24 +35,17 @@ const DiscoveryEngine = {
     ).trim();
 
     this.state.limit = Math.min(
-      Math.max(
-        Number(data.get("limit") || 25),
-        1
-      ),
+      Math.max(Number(data.get("limit") || 25), 1),
       100
     );
 
-    this.state.requirements =
-      Array.from(
-        document.querySelectorAll(
-          'input[name="requirements"]:checked'
-        )
-      ).map((input) => input.value);
+    this.state.requirements = Array.from(
+      document.querySelectorAll(
+        'input[name="requirements"]:checked'
+      )
+    ).map((input) => input.value);
 
-    if (
-      !this.state.industry ||
-      !this.state.location
-    ) {
+    if (!this.state.industry || !this.state.location) {
       this.updateStatus(
         "Please enter an industry and location."
       );
@@ -65,46 +58,33 @@ const DiscoveryEngine = {
     this.updateStatus("Finding location...");
 
     try {
-      const areaId =
-        await this.findLocation();
+      const location = await this.findLocation();
 
-      if (!areaId) {
-        throw new Error(
-          "Location not found."
-        );
+      if (!location) {
+        throw new Error("Location not found.");
       }
 
-      this.updateStatus(
-        "Searching businesses..."
-      );
+      this.updateStatus("Searching businesses...");
 
-      const results =
-        await this.searchBusinesses(
-          areaId
-        );
+      const results = await this.searchBusinesses(location);
 
-      this.state.results = results;
+      this.state.results = results.map((business) => ({
+        ...business,
+        analysis: this.analyzeBusiness(business)
+      }));
 
-      this.renderResults(results);
+      this.renderResults(this.state.results);
 
       this.updateStatus(
-        `Found ${results.length} results.`
+        `Found ${this.state.results.length} results.`
       );
 
     } catch (error) {
+      console.error("Discovery error:", error);
 
-      console.error(
-        "Discovery error:",
-        error
-      );
+      this.updateStatus("Search failed.");
 
-      this.updateStatus(
-        "Search failed."
-      );
-
-      this.renderError(
-        error.message
-      );
+      this.renderError(error.message);
 
     } finally {
       this.state.running = false;
@@ -112,22 +92,18 @@ const DiscoveryEngine = {
   },
 
   async findLocation() {
-
-    const query =
-      encodeURIComponent(
-        this.state.location
-      );
+    const query = encodeURIComponent(
+      this.state.location
+    );
 
     const url =
       `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${query}`;
 
-    const response =
-      await fetch(url, {
-        headers: {
-          "Accept":
-            "application/json"
-        }
-      });
+    const response = await fetch(url, {
+      headers: {
+        Accept: "application/json"
+      }
+    });
 
     if (!response.ok) {
       throw new Error(
@@ -135,13 +111,9 @@ const DiscoveryEngine = {
       );
     }
 
-    const data =
-      await response.json();
+    const data = await response.json();
 
-    if (
-      !Array.isArray(data) ||
-      data.length === 0
-    ) {
+    if (!Array.isArray(data) || data.length === 0) {
       return null;
     }
 
@@ -152,43 +124,30 @@ const DiscoveryEngine = {
   },
 
   async searchBusinesses(location) {
-
-    const lat =
-      location.lat;
-
-    const lon =
-      location.lon;
-
-    const radius = 10000;
-
     const query = `
 [out:json][timeout:30];
 
 (
-  nwr["amenity"="restaurant"](around:${radius},${lat},${lon});
-  nwr["amenity"="cafe"](around:${radius},${lat},${lon});
-  nwr["amenity"="fast_food"](around:${radius},${lat},${lon});
+  nwr["amenity"="restaurant"](around:10000,${location.lat},${location.lon});
+  nwr["amenity"="cafe"](around:10000,${location.lat},${location.lon});
+  nwr["amenity"="fast_food"](around:10000,${location.lat},${location.lon});
 );
 
 out center tags;
 `;
 
-    const response =
-      await fetch(
-        "https://overpass-api.de/api/interpreter",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/x-www-form-urlencoded"
-          },
-
-          body:
-            "data=" +
-            encodeURIComponent(query)
-        }
-      );
+    const response = await fetch(
+      "https://overpass-api.de/api/interpreter",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/x-www-form-urlencoded"
+        },
+        body:
+          "data=" + encodeURIComponent(query)
+      }
+    );
 
     if (!response.ok) {
       throw new Error(
@@ -196,19 +155,15 @@ out center tags;
       );
     }
 
-    const data =
-      await response.json();
+    const data = await response.json();
 
-    const elements =
-      Array.isArray(data.elements)
-        ? data.elements
-        : [];
+    const elements = Array.isArray(data.elements)
+      ? data.elements
+      : [];
 
-    return elements
+    const businesses = elements
       .map((element) => {
-
-        const tags =
-          element.tags || {};
+        const tags = element.tags || {};
 
         const lat =
           element.lat ??
@@ -221,9 +176,7 @@ out center tags;
           null;
 
         return {
-
-          id:
-            `${element.type}-${element.id}`,
+          id: `${element.type}-${element.id}`,
 
           name:
             tags.name ||
@@ -250,11 +203,9 @@ out center tags;
             tags["contact:instagram"] ||
             "",
 
-          latitude:
-            lat,
+          latitude: lat,
 
-          longitude:
-            lon,
+          longitude: lon,
 
           mapUrl:
             lat && lon
@@ -262,21 +213,35 @@ out center tags;
               : ""
         };
       })
-
       .filter(
         (business) =>
-          business.name !==
-          "Unnamed business"
-      )
-
-      .slice(
-        0,
-        this.state.limit
+          business.name !== "Unnamed business"
       );
+
+    return this.removeDuplicates(businesses)
+      .slice(0, this.state.limit);
+  },
+
+  removeDuplicates(businesses) {
+    const seen = new Set();
+
+    return businesses.filter((business) => {
+      const key =
+        business.name
+          .toLowerCase()
+          .trim();
+
+      if (seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+
+      return true;
+    });
   },
 
   buildAddress(tags) {
-
     const parts = [];
 
     if (tags["addr:housenumber"]) {
@@ -300,8 +265,98 @@ out center tags;
     return parts.join(", ");
   },
 
-  renderResults(results) {
+  analyzeBusiness(business) {
+    let score = 40;
 
+    if (business.website) {
+      score += 20;
+    } else {
+      score += 5;
+    }
+
+    if (business.instagram) {
+      score += 15;
+    }
+
+    if (business.phone) {
+      score += 10;
+    }
+
+    if (business.address) {
+      score += 5;
+    }
+
+    score = Math.min(score, 100);
+
+    let service;
+
+    if (!business.website) {
+      service = "Professional Website";
+    } else if (!business.instagram) {
+      service = "Social Media / Instagram Optimization";
+    } else {
+      service = "QR Review & Digital Experience";
+    }
+
+    let priority;
+
+    if (score >= 80) {
+      priority = "High";
+    } else if (score >= 60) {
+      priority = "Medium";
+    } else {
+      priority = "Low";
+    }
+
+    return {
+      score,
+      priority,
+      service
+    };
+  },
+
+  addToLeads(id) {
+    const business =
+      this.state.results.find(
+        (item) => item.id === id
+      );
+
+    if (!business) return;
+
+    const leads =
+      JSON.parse(
+        localStorage.getItem("ai_agency_leads") ||
+        "[]"
+      );
+
+    const exists =
+      leads.some(
+        (lead) =>
+          lead.name === business.name
+      );
+
+    if (exists) {
+      alert("This company is already in Leads.");
+      return;
+    }
+
+    leads.push({
+      ...business,
+      addedAt:
+        new Date().toISOString()
+    });
+
+    localStorage.setItem(
+      "ai_agency_leads",
+      JSON.stringify(leads)
+    );
+
+    alert(
+      `${business.name} added to Leads.`
+    );
+  },
+
+  renderResults(results) {
     const container =
       document.getElementById(
         "discovery-results"
@@ -310,22 +365,13 @@ out center tags;
     if (!container) return;
 
     if (!results.length) {
-
       container.innerHTML = `
         <div class="empty-state">
-
-          <div class="empty-icon">
-            🔎
-          </div>
-
-          <strong>
-            No businesses found
-          </strong>
-
+          <div class="empty-icon">🔎</div>
+          <strong>No businesses found</strong>
           <p>
             Try another location or search again.
           </p>
-
         </div>
       `;
 
@@ -340,151 +386,200 @@ out center tags;
         "
       >
 
-        ${results.map(
-          (business) => `
+        ${results.map((business) => {
 
-          <div
-            class="card"
-            style="
-              padding:16px;
-              border:1px solid rgba(255,255,255,.06);
-            "
-          >
+          const analysis =
+            business.analysis;
 
+          return `
             <div
+              class="card"
               style="
-                display:flex;
-                justify-content:space-between;
-                gap:15px;
+                padding:18px;
+                border:1px solid rgba(255,255,255,.06);
               "
             >
 
-              <div>
+              <div
+                style="
+                  display:flex;
+                  justify-content:space-between;
+                  gap:15px;
+                  align-items:flex-start;
+                "
+              >
 
-                <strong
-                  style="
-                    display:block;
-                    font-size:15px;
-                    margin-bottom:6px;
-                  "
-                >
-                  ${this.escapeHTML(
-                    business.name
-                  )}
-                </strong>
+                <div>
+
+                  <strong
+                    style="
+                      display:block;
+                      font-size:16px;
+                      margin-bottom:6px;
+                    "
+                  >
+                    ${this.escapeHTML(
+                      business.name
+                    )}
+                  </strong>
+
+                  <div
+                    style="
+                      color:#888;
+                      font-size:12px;
+                    "
+                  >
+                    ${this.escapeHTML(
+                      business.address ||
+                      "Address unavailable"
+                    )}
+                  </div>
+
+                </div>
 
                 <div
                   style="
-                    color:#888;
-                    font-size:12px;
+                    text-align:right;
                   "
                 >
-                  ${this.escapeHTML(
-                    business.address ||
-                    "Address unavailable"
-                  )}
+
+                  <strong
+                    style="
+                      font-size:20px;
+                    "
+                  >
+                    ${analysis.score}
+                  </strong>
+
+                  <div
+                    style="
+                      color:#888;
+                      font-size:10px;
+                    "
+                  >
+                    / 100
+                  </div>
+
                 </div>
 
               </div>
 
-              <span
+
+              <div
                 style="
-                  font-size:11px;
-                  padding:5px 8px;
-                  border-radius:6px;
-                  background:rgba(255,255,255,.06);
-                  color:#aaa;
+                  margin-top:14px;
+                  display:flex;
+                  gap:8px;
+                  flex-wrap:wrap;
                 "
               >
-                ${this.escapeHTML(
-                  business.type
-                )}
-              </span>
+
+                <span
+                  style="
+                    padding:5px 8px;
+                    border-radius:6px;
+                    background:rgba(255,255,255,.06);
+                    font-size:10px;
+                  "
+                >
+                  ${this.escapeHTML(
+                    analysis.priority
+                  )}
+                  Priority
+                </span>
+
+                <span
+                  style="
+                    padding:5px 8px;
+                    border-radius:6px;
+                    background:rgba(255,255,255,.06);
+                    font-size:10px;
+                  "
+                >
+                  ${this.escapeHTML(
+                    analysis.service
+                  )}
+                </span>
+
+              </div>
+
+
+              <div
+                style="
+                  display:flex;
+                  gap:14px;
+                  flex-wrap:wrap;
+                  margin-top:14px;
+                  color:#888;
+                  font-size:11px;
+                "
+              >
+
+                ${
+                  business.phone
+                    ? `<span>📞 Phone</span>`
+                    : `<span>📞 No phone</span>`
+                }
+
+                ${
+                  business.website
+                    ? `<span>🌐 Website</span>`
+                    : `<span>🌐 No website</span>`
+                }
+
+                ${
+                  business.instagram
+                    ? `<span>📸 Instagram</span>`
+                    : `<span>📸 No Instagram</span>`
+                }
+
+              </div>
+
+
+              <div
+                style="
+                  display:flex;
+                  gap:10px;
+                  margin-top:16px;
+                  flex-wrap:wrap;
+                "
+              >
+
+                <button
+                  type="button"
+                  class="primary-button"
+                  onclick="DiscoveryEngine.addToLeads('${business.id}')"
+                >
+                  + Add to Leads
+                </button>
+
+                ${
+                  business.mapUrl
+                    ? `
+                      <a
+                        href="${business.mapUrl}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="secondary-button"
+                      >
+                        View location
+                      </a>
+                    `
+                    : ""
+                }
+
+              </div>
 
             </div>
+          `;
 
-            <div
-              style="
-                display:flex;
-                gap:15px;
-                flex-wrap:wrap;
-                margin-top:12px;
-                color:#888;
-                font-size:11px;
-              "
-            >
-
-              ${
-                business.phone
-                  ? `
-                    <span>
-                      📞 ${this.escapeHTML(
-                        business.phone
-                      )}
-                    </span>
-                  `
-                  : ""
-              }
-
-              ${
-                business.website
-                  ? `
-                    <span>
-                      🌐 Website
-                    </span>
-                  `
-                  : ""
-              }
-
-              ${
-                business.instagram
-                  ? `
-                    <span>
-                      📸 Instagram
-                    </span>
-                  `
-                  : ""
-              }
-
-            </div>
-
-            ${
-              business.mapUrl
-                ? `
-                  <div
-                    style="
-                      margin-top:12px;
-                    "
-                  >
-
-                    <a
-                      href="${business.mapUrl}"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style="
-                        font-size:11px;
-                        color:inherit;
-                      "
-                    >
-                      View location →
-                    </a>
-
-                  </div>
-                `
-                : ""
-            }
-
-          </div>
-
-        `
-        ).join("")}
+        }).join("")}
 
       </div>
     `;
   },
 
   renderError(message) {
-
     const container =
       document.getElementById(
         "discovery-results"
@@ -515,7 +610,6 @@ out center tags;
   },
 
   updateStatus(message) {
-
     const status =
       document.getElementById(
         "discovery-status"
@@ -528,7 +622,6 @@ out center tags;
   },
 
   escapeHTML(value) {
-
     return String(value)
       .replaceAll("&", "&amp;")
       .replaceAll("<", "&lt;")
