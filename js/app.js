@@ -1,8 +1,7 @@
-```javascript
 /* =========================================================
    AI AGENCY — APP.JS
    Core CRM
-   Leads + Dashboard + Navigation + Local Storage
+   Navigation + Leads + Dashboard + LocalStorage
 ========================================================= */
 
 const STORAGE_KEY = "ai_agency_leads";
@@ -35,9 +34,12 @@ const App = {
 
     this.updateDashboard();
 
-    this.updatePageHeader(
-      this.state.currentPage
+    this.showPage(
+      this.state.currentPage,
+      false
     );
+
+    console.log("AI Agency App initialized.");
 
   },
 
@@ -51,14 +53,20 @@ const App = {
     try {
 
       const saved =
-        localStorage.getItem(STORAGE_KEY);
+        localStorage.getItem(
+          STORAGE_KEY
+        );
 
       if (!saved) {
+
         this.state.leads = [];
+
         return;
+
       }
 
-      const parsed = JSON.parse(saved);
+      const parsed =
+        JSON.parse(saved);
 
       this.state.leads =
         Array.isArray(parsed)
@@ -109,26 +117,30 @@ const App = {
   setupNavigation() {
 
     document
-      .querySelectorAll(".nav-link")
-      .forEach((link) => {
+      .querySelectorAll(
+        ".nav-link"
+      )
+      .forEach(
+        (link) => {
 
-        link.addEventListener(
-          "click",
-          (event) => {
+          link.addEventListener(
+            "click",
+            (event) => {
 
-            event.preventDefault();
+              event.preventDefault();
 
-            const page =
-              link.dataset.page;
+              const page =
+                link.dataset.page;
 
-            if (page) {
+              if (!page) return;
+
               this.showPage(page);
+
             }
+          );
 
-          }
-        );
-
-      });
+        }
+      );
 
   },
 
@@ -136,52 +148,68 @@ const App = {
   setupPageLinks() {
 
     document
-      .querySelectorAll("[data-page-link]")
-      .forEach((link) => {
+      .querySelectorAll(
+        "[data-page-link]"
+      )
+      .forEach(
+        (link) => {
 
-        link.addEventListener(
-          "click",
-          (event) => {
+          link.addEventListener(
+            "click",
+            (event) => {
 
-            event.preventDefault();
+              event.preventDefault();
 
-            const page =
-              link.dataset.pageLink;
+              const page =
+                link.dataset.pageLink;
 
-            if (page) {
+              if (!page) return;
+
               this.showPage(page);
+
             }
+          );
 
-          }
-        );
-
-      });
+        }
+      );
 
   },
 
 
-  showPage(page) {
-
-    document
-      .querySelectorAll(".page")
-      .forEach((section) => {
-
-        section.classList.remove(
-          "active-page"
-        );
-
-      });
-
+  showPage(
+    page,
+    updateHeader = true
+  ) {
 
     const target =
       document.getElementById(
         `${page}-page`
       );
 
-
     if (!target) {
+
+      console.warn(
+        `Page not found: ${page}`
+      );
+
       return;
+
     }
+
+
+    document
+      .querySelectorAll(
+        ".page"
+      )
+      .forEach(
+        (section) => {
+
+          section.classList.remove(
+            "active-page"
+          );
+
+        }
+      );
 
 
     target.classList.add(
@@ -190,31 +218,45 @@ const App = {
 
 
     document
-      .querySelectorAll(".nav-link")
-      .forEach((link) => {
+      .querySelectorAll(
+        ".nav-link"
+      )
+      .forEach(
+        (link) => {
 
-        link.classList.toggle(
-          "active",
-          link.dataset.page === page
-        );
+          link.classList.toggle(
+            "active",
+            link.dataset.page === page
+          );
 
-      });
+        }
+      );
 
 
     this.state.currentPage =
       page;
 
 
-    this.updatePageHeader(page);
+    if (updateHeader) {
+
+      this.updatePageHeader(
+        page
+      );
+
+    }
 
 
     if (page === "dashboard") {
+
       this.updateDashboard();
+
     }
 
 
     if (page === "leads") {
+
       this.renderLeads();
+
     }
 
   },
@@ -328,12 +370,46 @@ const App = {
       );
 
 
+    if (!modal) return;
+
+
     const closeModal = () => {
 
-      if (modal) {
-        modal.classList.remove(
-          "show"
+      modal.classList.remove(
+        "open"
+      );
+
+      modal.setAttribute(
+        "aria-hidden",
+        "true"
+      );
+
+    };
+
+
+    const openModal = () => {
+
+      modal.classList.add(
+        "open"
+      );
+
+      modal.setAttribute(
+        "aria-hidden",
+        "false"
+      );
+
+      const firstInput =
+        form?.querySelector(
+          "input"
         );
+
+      if (firstInput) {
+
+        setTimeout(
+          () => firstInput.focus(),
+          50
+        );
+
       }
 
     };
@@ -343,52 +419,63 @@ const App = {
 
       openButton.addEventListener(
         "click",
-        () => {
-
-          if (modal) {
-            modal.classList.add(
-              "show"
-            );
-          }
-
-        }
+        openModal
       );
 
     }
 
 
     if (closeButton) {
+
       closeButton.addEventListener(
         "click",
         closeModal
       );
+
     }
 
 
     if (cancelButton) {
+
       cancelButton.addEventListener(
         "click",
         closeModal
       );
+
     }
 
 
-    if (modal) {
+    modal.addEventListener(
+      "click",
+      (event) => {
 
-      modal.addEventListener(
-        "click",
-        (event) => {
+        if (
+          event.target === modal
+        ) {
 
-          if (
-            event.target === modal
-          ) {
-            closeModal();
-          }
+          closeModal();
 
         }
-      );
 
-    }
+      }
+    );
+
+
+    document.addEventListener(
+      "keydown",
+      (event) => {
+
+        if (
+          event.key === "Escape" &&
+          modal.classList.contains("open")
+        ) {
+
+          closeModal();
+
+        }
+
+      }
+    );
 
 
     if (form) {
@@ -400,7 +487,9 @@ const App = {
           event.preventDefault();
 
           const added =
-            this.addManualLead(form);
+            this.addManualLead(
+              form
+            );
 
           if (added) {
 
@@ -431,7 +520,9 @@ const App = {
     const lead = {
 
       id:
-        this.createId("manual"),
+        this.createId(
+          "manual"
+        ),
 
       name:
         this.clean(
@@ -453,51 +544,40 @@ const App = {
           data.get("city")
         ) || "Unknown",
 
-      address:
-        "",
+      address: "",
 
       email:
         this.clean(
           data.get("email")
         ),
 
-      phone:
-        "",
+      phone: "",
 
       website:
         this.clean(
           data.get("website")
         ),
 
-      instagram:
-        "",
+      instagram: "",
 
-      latitude:
-        null,
+      latitude: null,
 
-      longitude:
-        null,
+      longitude: null,
 
-      mapUrl:
-        "",
+      mapUrl: "",
 
-      score:
-        0,
+      score: 0,
 
-      priority:
-        "Medium",
+      priority: "Medium",
 
       recommendedService:
         "Professional Website",
 
-      opportunities:
-        [],
+      opportunities: [],
 
-      status:
-        "new",
+      status: "new",
 
-      source:
-        "Manual",
+      source: "Manual",
 
       addedAt:
         new Date().toISOString(),
@@ -509,7 +589,13 @@ const App = {
 
 
     if (!lead.name) {
+
+      alert(
+        "Company name is required."
+      );
+
       return false;
+
     }
 
 
@@ -537,6 +623,12 @@ const App = {
     lead.priority =
       this.getPriority(
         lead.score
+      );
+
+
+    lead.opportunities =
+      this.buildOpportunities(
+        lead
       );
 
 
@@ -569,7 +661,13 @@ const App = {
   addDiscoveredLead(business) {
 
     if (!business) {
+
+      console.error(
+        "No business supplied."
+      );
+
       return false;
+
     }
 
 
@@ -581,7 +679,13 @@ const App = {
 
 
     if (!name) {
+
+      alert(
+        "Company name is missing."
+      );
+
       return false;
+
     }
 
 
@@ -606,48 +710,48 @@ const App = {
 
       id:
         business.id ||
-        this.createId("discovery"),
+        this.createId(
+          "discovery"
+        ),
 
-      name:
-        name,
+      name,
 
-      company:
-        name,
+      company: name,
 
       industry:
         this.clean(
           business.industry
-        ) || "Restaurant",
+        ) || "Business",
 
       city:
         this.clean(
           business.city
-        ) || "",
+        ) || "Unknown",
 
       address:
         this.clean(
           business.address
-        ) || "",
+        ),
 
       email:
         this.clean(
           business.email
-        ) || "",
+        ),
 
       phone:
         this.clean(
           business.phone
-        ) || "",
+        ),
 
       website:
         this.clean(
           business.website
-        ) || "",
+        ),
 
       instagram:
         this.clean(
           business.instagram
-        ) || "",
+        ),
 
       latitude:
         business.latitude ??
@@ -686,11 +790,9 @@ const App = {
               business
             ),
 
-      status:
-        "new",
+      status: "new",
 
-      source:
-        "Discovery",
+      source: "Discovery",
 
       addedAt:
         new Date().toISOString(),
@@ -730,13 +832,18 @@ const App = {
 
 
   /* =======================================================
-     DUPLICATE CHECK
+     DUPLICATES
   ======================================================= */
 
   isDuplicate(name) {
 
     const normalized =
       this.normalize(name);
+
+
+    if (!normalized) {
+      return false;
+    }
 
 
     return this.state.leads.some(
@@ -749,9 +856,9 @@ const App = {
             ""
           );
 
-
         return (
-          leadName === normalized
+          leadName ===
+          normalized
         );
 
       }
@@ -770,19 +877,27 @@ const App = {
 
 
     if (data.website) {
+
       score += 20;
+
     } else {
+
       score += 5;
+
     }
 
 
     if (data.instagram) {
+
       score += 15;
+
     }
 
 
     if (data.phone) {
+
       score += 10;
+
     }
 
 
@@ -790,12 +905,16 @@ const App = {
       data.address ||
       data.city
     ) {
+
       score += 5;
+
     }
 
 
     if (data.email) {
+
       score += 5;
+
     }
 
 
@@ -810,12 +929,16 @@ const App = {
   getPriority(score) {
 
     if (score >= 80) {
+
       return "High";
+
     }
 
 
     if (score >= 60) {
+
       return "Medium";
+
     }
 
 
@@ -830,30 +953,38 @@ const App = {
 
 
     if (!business.website) {
+
       opportunities.push(
         "No professional website detected"
       );
+
     }
 
 
     if (!business.instagram) {
+
       opportunities.push(
         "Instagram presence not detected"
       );
+
     }
 
 
     if (!business.phone) {
+
       opportunities.push(
         "No phone number detected"
       );
+
     }
 
 
     if (!business.email) {
+
       opportunities.push(
         "No email detected"
       );
+
     }
 
 
@@ -863,7 +994,7 @@ const App = {
 
 
   /* =======================================================
-     SEARCH + FILTER
+     LEAD SEARCH
   ======================================================= */
 
   setupLeadSearch() {
@@ -949,6 +1080,8 @@ const App = {
 
           lead.city,
 
+          lead.address,
+
           lead.email,
 
           lead.phone
@@ -1001,9 +1134,7 @@ const App = {
       );
 
 
-    if (!body) {
-      return;
-    }
+    if (!body) return;
 
 
     const leads =
@@ -1016,8 +1147,10 @@ const App = {
     if (!leads.length) {
 
       if (empty) {
+
         empty.style.display =
-          "block";
+          "flex";
+
       }
 
       return;
@@ -1026,8 +1159,10 @@ const App = {
 
 
     if (empty) {
+
       empty.style.display =
         "none";
+
     }
 
 
@@ -1239,9 +1374,7 @@ const App = {
       );
 
 
-    if (!lead) {
-      return;
-    }
+    if (!lead) return;
 
 
     lead.status =
@@ -1271,9 +1404,7 @@ const App = {
       );
 
 
-    if (!lead) {
-      return;
-    }
+    if (!lead) return;
 
 
     const name =
@@ -1287,7 +1418,9 @@ const App = {
         `Remove ${name} from Leads?`
       )
     ) {
+
       return;
+
     }
 
 
@@ -1416,9 +1549,7 @@ const App = {
       );
 
 
-    if (!container) {
-      return;
-    }
+    if (!container) return;
 
 
     const recent =
@@ -1472,17 +1603,14 @@ const App = {
           (lead) => `
 
             <div
-              style="
-                display:flex;
-                justify-content:space-between;
-                align-items:center;
-                gap:15px;
-                padding:12px 0;
-                border-bottom:1px solid rgba(255,255,255,.05);
-              "
+              class="activity-item"
             >
 
-              <div>
+              <div class="activity-icon">
+                AI
+              </div>
+
+              <div class="activity-text">
 
                 <strong>
                   ${this.escapeHTML(
@@ -1492,28 +1620,16 @@ const App = {
                   )}
                 </strong>
 
-                <div
-                  style="
-                    color:#888;
-                    font-size:11px;
-                    margin-top:4px;
-                  "
-                >
+                <p>
                   ${this.escapeHTML(
                     lead.source ||
                     "Unknown"
                   )}
-                </div>
+                </p>
 
               </div>
 
-
-              <span
-                style="
-                  font-size:11px;
-                  color:#999;
-                "
-              >
+              <span class="time">
                 ${this.escapeHTML(
                   this.formatStatus(
                     lead.status
@@ -1536,9 +1652,11 @@ const App = {
 
   createId(prefix) {
 
-    return `${prefix}-${Date.now()}-${Math.random()
-      .toString(36)
-      .slice(2, 8)}`;
+    return (
+      `${prefix}-${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 9)}`
+    );
 
   },
 
@@ -1567,20 +1685,15 @@ const App = {
 
     const labels = {
 
-      new:
-        "New",
+      new: "New",
 
-      qualified:
-        "Qualified",
+      qualified: "Qualified",
 
-      interested:
-        "Interested",
+      interested: "Interested",
 
-      negotiating:
-        "Negotiating",
+      negotiating: "Negotiating",
 
-      payment:
-        "Payment Pending"
+      payment: "Payment Pending"
 
     };
 
@@ -1605,8 +1718,10 @@ const App = {
 
 
     if (element) {
+
       element.textContent =
         value;
+
     }
 
   },
@@ -1615,7 +1730,7 @@ const App = {
   escapeHTML(value) {
 
     return String(
-      value || ""
+      value ?? ""
     )
       .replaceAll(
         "&",
@@ -1644,16 +1759,14 @@ const App = {
 
 
 /* =========================================================
-   GLOBAL ACCESS
+   GLOBAL
 ========================================================= */
 
-window.App = App;
+window.App =
+  App;
 
 
-/* =========================================================
-   DISCOVERY → LEADS
-========================================================= */
-
+/* Discovery can call this directly */
 window.addDiscoveredLead =
   function (business) {
 
@@ -1665,7 +1778,7 @@ window.addDiscoveredLead =
 
 
 /* =========================================================
-   START APP
+   START
 ========================================================= */
 
 document.addEventListener(
@@ -1676,4 +1789,3 @@ document.addEventListener(
 
   }
 );
-```
