@@ -66,12 +66,19 @@ const DiscoveryEngine = {
 
       this.updateStatus("Searching businesses...");
 
-      const results = await this.searchBusinesses(location);
+      const results =
+        await this.searchBusinesses(location);
 
-      this.state.results = results.map((business) => ({
-        ...business,
-        analysis: this.analyzeBusiness(business)
-      }));
+      this.state.results = results
+        .map((business) => ({
+          ...business,
+          analysis: this.analyzeBusiness(business)
+        }))
+        .sort(
+          (a, b) =>
+            b.analysis.score -
+            a.analysis.score
+        );
 
       this.renderResults(this.state.results);
 
@@ -84,7 +91,9 @@ const DiscoveryEngine = {
 
       this.updateStatus("Search failed.");
 
-      this.renderError(error.message);
+      this.renderError(
+        error.message
+      );
 
     } finally {
       this.state.running = false;
@@ -113,7 +122,10 @@ const DiscoveryEngine = {
 
     const data = await response.json();
 
-    if (!Array.isArray(data) || data.length === 0) {
+    if (
+      !Array.isArray(data) ||
+      data.length === 0
+    ) {
       return null;
     }
 
@@ -124,13 +136,35 @@ const DiscoveryEngine = {
   },
 
   async searchBusinesses(location) {
+    const industry =
+      this.state.industry.toLowerCase();
+
+    let amenityQuery = `
+      nwr["amenity"="restaurant"]
+      (around:10000,${location.lat},${location.lon});
+
+      nwr["amenity"="cafe"]
+      (around:10000,${location.lat},${location.lon});
+
+      nwr["amenity"="fast_food"]
+      (around:10000,${location.lat},${location.lon});
+    `;
+
+    if (
+      industry.includes("hotel") ||
+      industry.includes("hôtel")
+    ) {
+      amenityQuery += `
+        nwr["tourism"="hotel"]
+        (around:10000,${location.lat},${location.lon});
+      `;
+    }
+
     const query = `
 [out:json][timeout:30];
 
 (
-  nwr["amenity"="restaurant"](around:10000,${location.lat},${location.lon});
-  nwr["amenity"="cafe"](around:10000,${location.lat},${location.lon});
-  nwr["amenity"="fast_food"](around:10000,${location.lat},${location.lon});
+  ${amenityQuery}
 );
 
 out center tags;
@@ -145,7 +179,8 @@ out center tags;
             "application/x-www-form-urlencoded"
         },
         body:
-          "data=" + encodeURIComponent(query)
+          "data=" +
+          encodeURIComponent(query)
       }
     );
 
@@ -155,90 +190,113 @@ out center tags;
       );
     }
 
-    const data = await response.json();
+    const data =
+      await response.json();
 
-    const elements = Array.isArray(data.elements)
-      ? data.elements
-      : [];
+    const elements =
+      Array.isArray(data.elements)
+        ? data.elements
+        : [];
 
-    const businesses = elements
-      .map((element) => {
-        const tags = element.tags || {};
+    const businesses =
+      elements
+        .map((element) => {
+          const tags =
+            element.tags || {};
 
-        const lat =
-          element.lat ??
-          element.center?.lat ??
-          null;
+          const lat =
+            element.lat ??
+            element.center?.lat ??
+            null;
 
-        const lon =
-          element.lon ??
-          element.center?.lon ??
-          null;
+          const lon =
+            element.lon ??
+            element.center?.lon ??
+            null;
 
-        return {
-          id: `${element.type}-${element.id}`,
+          return {
+            id:
+              `${element.type}-${element.id}`,
 
-          name:
-            tags.name ||
-            "Unnamed business",
+            name:
+              tags.name ||
+              "Unnamed business",
 
-          type:
-            tags.amenity ||
-            "business",
+            type:
+              tags.amenity ||
+              tags.tourism ||
+              "business",
 
-          address:
-            this.buildAddress(tags),
+            address:
+              this.buildAddress(tags),
 
-          phone:
-            tags.phone ||
-            tags["contact:phone"] ||
-            "",
+            phone:
+              tags.phone ||
+              tags["contact:phone"] ||
+              "",
 
-          website:
-            tags.website ||
-            tags["contact:website"] ||
-            "",
+            website:
+              tags.website ||
+              tags["contact:website"] ||
+              "",
 
-          instagram:
-            tags["contact:instagram"] ||
-            "",
+            instagram:
+              tags["contact:instagram"] ||
+              "",
 
-          latitude: lat,
+            facebook:
+              tags["contact:facebook"] ||
+              "",
 
-          longitude: lon,
+            email:
+              tags.email ||
+              tags["contact:email"] ||
+              "",
 
-          mapUrl:
-            lat && lon
-              ? `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=18/${lat}/${lon}`
-              : ""
-        };
-      })
-      .filter(
-        (business) =>
-          business.name !== "Unnamed business"
-      );
+            latitude: lat,
 
-    return this.removeDuplicates(businesses)
-      .slice(0, this.state.limit);
+            longitude: lon,
+
+            mapUrl:
+              lat !== null &&
+              lon !== null
+                ? `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=18/${lat}/${lon}`
+                : ""
+          };
+        })
+        .filter(
+          (business) =>
+            business.name !==
+            "Unnamed business"
+        );
+
+    return this.removeDuplicates(
+      businesses
+    ).slice(
+      0,
+      this.state.limit
+    );
   },
 
   removeDuplicates(businesses) {
     const seen = new Set();
 
-    return businesses.filter((business) => {
-      const key =
-        business.name
-          .toLowerCase()
-          .trim();
+    return businesses.filter(
+      (business) => {
+        const key =
+          business.name
+            .toLowerCase()
+            .trim();
 
-      if (seen.has(key)) {
-        return false;
+        if (seen.has(key)) {
+          return false;
+        }
+
+        seen.add(key);
+
+        return true;
       }
-
-      seen.add(key);
-
-      return true;
-    });
+    );
   },
 
   buildAddress(tags) {
@@ -266,82 +324,140 @@ out center tags;
   },
 
   analyzeBusiness(business) {
-    let score = 40;
+    let score = 35;
+
+    const opportunities = [];
 
     if (business.website) {
-      score += 20;
+      score += 10;
     } else {
-      score += 5;
+      score += 20;
+
+      opportunities.push(
+        "No professional website detected"
+      );
     }
 
     if (business.instagram) {
-      score += 15;
+      score += 10;
+    } else {
+      opportunities.push(
+        "Instagram presence not detected"
+      );
     }
 
     if (business.phone) {
       score += 10;
+    } else {
+      opportunities.push(
+        "No phone number detected"
+      );
     }
 
     if (business.address) {
       score += 5;
     }
 
-    score = Math.min(score, 100);
-
-    let service;
-
-    if (!business.website) {
-      service = "Professional Website";
-    } else if (!business.instagram) {
-      service = "Social Media / Instagram Optimization";
-    } else {
-      service = "QR Review & Digital Experience";
+    if (business.email) {
+      score += 5;
     }
+
+    if (
+      business.website &&
+      business.instagram &&
+      business.phone
+    ) {
+      opportunities.push(
+        "Digital presence already established"
+      );
+    }
+
+    score = Math.min(
+      score,
+      100
+    );
 
     let priority;
 
-    if (score >= 80) {
+    if (score >= 75) {
       priority = "High";
-    } else if (score >= 60) {
+    } else if (score >= 55) {
       priority = "Medium";
     } else {
       priority = "Low";
     }
 
+    let service;
+
+    if (!business.website) {
+      service =
+        "Professional Website";
+    } else if (!business.instagram) {
+      service =
+        "Instagram Optimization";
+    } else if (!business.phone) {
+      service =
+        "Lead Generation";
+    } else {
+      service =
+        "QR Review & Digital Experience";
+    }
+
     return {
       score,
       priority,
-      service
+      service,
+      opportunities
     };
   },
 
   addToLeads(id) {
     const business =
       this.state.results.find(
-        (item) => item.id === id
+        (item) =>
+          item.id === id
       );
 
     if (!business) return;
 
     const leads =
       JSON.parse(
-        localStorage.getItem("ai_agency_leads") ||
-        "[]"
+        localStorage.getItem(
+          "ai_agency_leads"
+        ) || "[]"
       );
 
     const exists =
       leads.some(
         (lead) =>
-          lead.name === business.name
+          lead.name ===
+          business.name
       );
 
     if (exists) {
-      alert("This company is already in Leads.");
+      alert(
+        "This company is already in Leads."
+      );
       return;
     }
 
     leads.push({
       ...business,
+
+      status: "new",
+
+      score:
+        business.analysis.score,
+
+      priority:
+        business.analysis.priority,
+
+      recommendedService:
+        business.analysis.service,
+
+      opportunities:
+        business.analysis.opportunities,
+
       addedAt:
         new Date().toISOString()
     });
@@ -368,7 +484,11 @@ out center tags;
       container.innerHTML = `
         <div class="empty-state">
           <div class="empty-icon">🔎</div>
-          <strong>No businesses found</strong>
+
+          <strong>
+            No businesses found
+          </strong>
+
           <p>
             Try another location or search again.
           </p>
@@ -386,194 +506,252 @@ out center tags;
         "
       >
 
-        ${results.map((business) => {
+        ${results.map(
+          (business) => {
 
-          const analysis =
-            business.analysis;
+            const analysis =
+              business.analysis;
 
-          return `
-            <div
-              class="card"
-              style="
-                padding:18px;
-                border:1px solid rgba(255,255,255,.06);
-              "
-            >
+            const opportunities =
+              analysis.opportunities
+                .slice(0, 3)
+                .map(
+                  (item) =>
+                    `<li>${this.escapeHTML(item)}</li>`
+                )
+                .join("");
 
+            return `
               <div
+                class="card"
                 style="
-                  display:flex;
-                  justify-content:space-between;
-                  gap:15px;
-                  align-items:flex-start;
+                  padding:18px;
+                  border:1px solid rgba(255,255,255,.06);
                 "
               >
-
-                <div>
-
-                  <strong
-                    style="
-                      display:block;
-                      font-size:16px;
-                      margin-bottom:6px;
-                    "
-                  >
-                    ${this.escapeHTML(
-                      business.name
-                    )}
-                  </strong>
-
-                  <div
-                    style="
-                      color:#888;
-                      font-size:12px;
-                    "
-                  >
-                    ${this.escapeHTML(
-                      business.address ||
-                      "Address unavailable"
-                    )}
-                  </div>
-
-                </div>
 
                 <div
                   style="
-                    text-align:right;
+                    display:flex;
+                    justify-content:space-between;
+                    gap:15px;
+                    align-items:flex-start;
                   "
                 >
 
-                  <strong
-                    style="
-                      font-size:20px;
-                    "
-                  >
-                    ${analysis.score}
-                  </strong>
+                  <div>
+
+                    <strong
+                      style="
+                        display:block;
+                        font-size:16px;
+                        margin-bottom:6px;
+                      "
+                    >
+                      ${this.escapeHTML(
+                        business.name
+                      )}
+                    </strong>
+
+                    <div
+                      style="
+                        color:#888;
+                        font-size:12px;
+                      "
+                    >
+                      ${this.escapeHTML(
+                        business.address ||
+                        "Address unavailable"
+                      )}
+                    </div>
+
+                  </div>
 
                   <div
                     style="
-                      color:#888;
-                      font-size:10px;
+                      text-align:right;
                     "
                   >
-                    / 100
+
+                    <strong
+                      style="
+                        font-size:20px;
+                      "
+                    >
+                      ${analysis.score}
+                    </strong>
+
+                    <div
+                      style="
+                        color:#888;
+                        font-size:10px;
+                      "
+                    >
+                      / 100
+                    </div>
+
                   </div>
 
                 </div>
 
-              </div>
 
-
-              <div
-                style="
-                  margin-top:14px;
-                  display:flex;
-                  gap:8px;
-                  flex-wrap:wrap;
-                "
-              >
-
-                <span
+                <div
                   style="
-                    padding:5px 8px;
-                    border-radius:6px;
-                    background:rgba(255,255,255,.06);
-                    font-size:10px;
+                    margin-top:14px;
+                    display:flex;
+                    gap:8px;
+                    flex-wrap:wrap;
                   "
                 >
-                  ${this.escapeHTML(
-                    analysis.priority
-                  )}
-                  Priority
-                </span>
 
-                <span
+                  <span
+                    style="
+                      padding:5px 8px;
+                      border-radius:6px;
+                      background:rgba(255,255,255,.06);
+                      font-size:10px;
+                    "
+                  >
+                    ${this.escapeHTML(
+                      analysis.priority
+                    )}
+                    Priority
+                  </span>
+
+                  <span
+                    style="
+                      padding:5px 8px;
+                      border-radius:6px;
+                      background:rgba(255,255,255,.06);
+                      font-size:10px;
+                    "
+                  >
+                    ${this.escapeHTML(
+                      analysis.service
+                    )}
+                  </span>
+
+                </div>
+
+
+                <div
                   style="
-                    padding:5px 8px;
-                    border-radius:6px;
-                    background:rgba(255,255,255,.06);
-                    font-size:10px;
+                    display:flex;
+                    gap:14px;
+                    flex-wrap:wrap;
+                    margin-top:14px;
+                    color:#888;
+                    font-size:11px;
                   "
                 >
-                  ${this.escapeHTML(
-                    analysis.service
-                  )}
-                </span>
 
-              </div>
+                  ${
+                    business.phone
+                      ? `<span>📞 Phone</span>`
+                      : `<span>📞 No phone</span>`
+                  }
 
+                  ${
+                    business.website
+                      ? `<span>🌐 Website</span>`
+                      : `<span>🌐 No website</span>`
+                  }
 
-              <div
-                style="
-                  display:flex;
-                  gap:14px;
-                  flex-wrap:wrap;
-                  margin-top:14px;
-                  color:#888;
-                  font-size:11px;
-                "
-              >
+                  ${
+                    business.instagram
+                      ? `<span>📸 Instagram</span>`
+                      : `<span>📸 No Instagram</span>`
+                  }
+
+                  ${
+                    business.email
+                      ? `<span>✉️ Email</span>`
+                      : `<span>✉️ No email</span>`
+                  }
+
+                </div>
+
 
                 ${
-                  business.phone
-                    ? `<span>📞 Phone</span>`
-                    : `<span>📞 No phone</span>`
-                }
-
-                ${
-                  business.website
-                    ? `<span>🌐 Website</span>`
-                    : `<span>🌐 No website</span>`
-                }
-
-                ${
-                  business.instagram
-                    ? `<span>📸 Instagram</span>`
-                    : `<span>📸 No Instagram</span>`
-                }
-
-              </div>
-
-
-              <div
-                style="
-                  display:flex;
-                  gap:10px;
-                  margin-top:16px;
-                  flex-wrap:wrap;
-                "
-              >
-
-                <button
-                  type="button"
-                  class="primary-button"
-                  onclick="DiscoveryEngine.addToLeads('${business.id}')"
-                >
-                  + Add to Leads
-                </button>
-
-                ${
-                  business.mapUrl
+                  opportunities
                     ? `
-                      <a
-                        href="${business.mapUrl}"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="secondary-button"
+                      <div
+                        style="
+                          margin-top:14px;
+                          padding:12px;
+                          border-radius:8px;
+                          background:rgba(255,255,255,.03);
+                        "
                       >
-                        View location
-                      </a>
+
+                        <div
+                          style="
+                            font-size:11px;
+                            font-weight:600;
+                            margin-bottom:7px;
+                          "
+                        >
+                          💡 Opportunities
+                        </div>
+
+                        <ul
+                          style="
+                            margin:0;
+                            padding-left:18px;
+                            color:#888;
+                            font-size:11px;
+                            line-height:1.7;
+                          "
+                        >
+                          ${opportunities}
+                        </ul>
+
+                      </div>
                     `
                     : ""
                 }
 
+
+                <div
+                  style="
+                    display:flex;
+                    gap:10px;
+                    margin-top:16px;
+                    flex-wrap:wrap;
+                  "
+                >
+
+                  <button
+                    type="button"
+                    class="primary-button"
+                    onclick="DiscoveryEngine.addToLeads('${this.escapeHTML(
+                      business.id
+                    )}')"
+                  >
+                    + Add to Leads
+                  </button>
+
+                  ${
+                    business.mapUrl
+                      ? `
+                        <a
+                          href="${business.mapUrl}"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="secondary-button"
+                        >
+                          View location
+                        </a>
+                      `
+                      : ""
+                  }
+
+                </div>
+
               </div>
-
-            </div>
-          `;
-
-        }).join("")}
+            `;
+          }
+        ).join("")}
 
       </div>
     `;
@@ -623,11 +801,26 @@ out center tags;
 
   escapeHTML(value) {
     return String(value)
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
+      .replaceAll(
+        "&",
+        "&amp;"
+      )
+      .replaceAll(
+        "<",
+        "&lt;"
+      )
+      .replaceAll(
+        ">",
+        "&gt;"
+      )
+      .replaceAll(
+        '"',
+        "&quot;"
+      )
+      .replaceAll(
+        "'",
+        "&#039;"
+      );
   }
 };
 
